@@ -1,7 +1,6 @@
 package crs.home;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,38 +41,12 @@ public class Main {
     return i;
   }
 
-  private static void write(BufferedWriter bufferedWriter, boolean newLineAfter, String message) throws IOException {
-    bufferedWriter.write(message);
-    if (newLineAfter) {
-      bufferedWriter.newLine();
-    }
-    bufferedWriter.flush();
-  }
-
-  private static void write(BufferedWriter bufferedWriter, String message) throws IOException {
-    write(bufferedWriter, false, message);
-  }
-
-  private static void write(BufferedWriter bufferedWriter, String format, Object ... arguments) throws IOException {
-    var s = String.format(format, arguments);
-    write(bufferedWriter, false, s);
-  }
-
-  private static void writeLine(BufferedWriter bufferedWriter, String message) throws IOException {
-    write(bufferedWriter, true, message);
-  }
-
-  private static void writeLine(BufferedWriter bufferedWriter, String format, Object ... arguments) throws IOException {
-    var s = String.format(format, arguments);
-    write(bufferedWriter, true, s);
-  }
-
   private static <T> List<T> readList(ConsoleHelper consoleHelper, Converter<T> converter, String headerMessage) throws IOException {
     List<T> retList = new ArrayList<T>();
-    writeLine(consoleHelper.getWriter(), headerMessage);
+    consoleHelper.writeLine(headerMessage);
     boolean halt = false;
     for (; !halt; ) {
-      write(consoleHelper.getWriter(), "value: ");
+      consoleHelper.write("value: ");
       String ln = consoleHelper.getReader().readLine();
       if (ln.length() == 0) {
         halt = true;
@@ -82,7 +55,7 @@ public class Main {
           T v = converter.get(ln);
           retList.add(v);
         } catch (NumberFormatException ex) {
-          writeLine(consoleHelper.getWriter(), "Failed to convert input text. Ending input iteration..");
+          consoleHelper.writeLine("Failed to convert input text. Ending input iteration..");
           halt = true;
         }
       }
@@ -100,7 +73,7 @@ public class Main {
     } else {
       sb.append("<empty list>");
     }
-    writeLine(consoleHelper.getWriter(), sb.toString());
+    consoleHelper.writeLine(sb.toString());
   }
 
   // Write a Java program to sort a numeric array and a string array.
@@ -108,20 +81,20 @@ public class Main {
     // int
     var convInt = new ConverterInt();
     var listInteger = readList(consoleHelper, convInt, "Please enter a list of integer values (end by supplying empty input).");
-    writeLine(consoleHelper.getWriter(), "List of integer values before sorting:");
+    consoleHelper.writeLine("List of integer values before sorting:");
     writeList(consoleHelper, listInteger);
     quicksort(listInteger, 0 , listInteger.size() - 1);
-    writeLine(consoleHelper.getWriter(), "List of integer values after sorting:");
+    consoleHelper.writeLine("List of integer values after sorting:");
     writeList(consoleHelper, listInteger);
 
     // string
-    writeLine(consoleHelper.getWriter(), "");
+    consoleHelper.writeLine("");
     Converter<String> convStr = new ConverterString();
     var listString = readList(consoleHelper, convStr, "Please enter a list of string values (end by supplying empty input).");
-    writeLine(consoleHelper.getWriter(), "List of string values before sorting:");
+    consoleHelper.writeLine("List of string values before sorting:");
     writeList(consoleHelper, listString);
     quicksort(listString, 0, listString.size() - 1);
-    writeLine(consoleHelper.getWriter(), "List of string values after sorting:");
+    consoleHelper.writeLine("List of string values after sorting:");
     writeList(consoleHelper, listString);
   }
 
@@ -132,26 +105,25 @@ public class Main {
     for (var v : list) {
       s += v;
     }
-    writeLine(consoleHelper.getWriter(), "Sum is %g", s);
+    consoleHelper.writeLine("Sum is %g", s);
   }
 
   private static void displayMenu(ConsoleHelper consoleHelper) throws IOException{
-    var bw = consoleHelper.getWriter();
-    writeLine(bw, " 1. Write a Java program to sort a numeric array and a string array.");
-    writeLine(bw, " 2. Write a Java program to sum values of an array.");
-    writeLine(bw, " 3. Write a Java program to calculate the average value of array elements.");
-    writeLine(bw, " 4. Write a Java program to test if an array contains a specific value.");
-    writeLine(bw, " 5. Write a Java program to remove a specific element from an array.");
-    //writeLine(bw, " 6. Write a Java program to insert an element (specific position) into an array.");
-    //writeLine(bw, " 7. Write a Java program to find the maximum and minimum value of an array.");
-    //writeLine(bw, " 8. Write a Java program to reverse an array of integer values.");
-    //writeLine(bw, " 9. Write a java program to get the length of a given string.");
-    //writeLine(bw, "10. Write a Java program to replace all the &#39;d&#39; characters with &#39;f&#39; characters.");
-    //writeLine(bw, "11. Write a Java program to convert all the characters in a string to uppercase.");
-    //writeLine(bw, "12. Write a Java program to trim any leading or trailing whitespace from a given string.");
-    //writeLine(bw, "13. Write a Java program to get and display information (year, month, day, hour, minute) of a default calendar.");
-    writeLine(bw, " 0. ..will exit.");
-    write(consoleHelper.getWriter(), "Please choose one of the above: ");
+    consoleHelper.writeLine(" 1. Write a Java program to sort a numeric array and a string array.");
+    consoleHelper.writeLine(" 2. Write a Java program to sum values of an array.");
+    consoleHelper.writeLine(" 3. Write a Java program to calculate the average value of array elements.");
+    consoleHelper.writeLine(" 4. Write a Java program to test if an array contains a specific value.");
+    consoleHelper.writeLine(" 5. Write a Java program to remove a specific element from an array.");
+    //consoleHelper.writeLine(" 6. Write a Java program to insert an element (specific position) into an array.");
+    //consoleHelper.writeLine(" 7. Write a Java program to find the maximum and minimum value of an array.");
+    //consoleHelper.writeLine(" 8. Write a Java program to reverse an array of integer values.");
+    //consoleHelper.writeLine(" 9. Write a java program to get the length of a given string.");
+    //consoleHelper.writeLine("10. Write a Java program to replace all the &#39;d&#39; characters with &#39;f&#39; characters.");
+    //consoleHelper.writeLine("11. Write a Java program to convert all the characters in a string to uppercase.");
+    //consoleHelper.writeLine("12. Write a Java program to trim any leading or trailing whitespace from a given string.");
+    //consoleHelper.writeLine("13. Write a Java program to get and display information (year, month, day, hour, minute) of a default calendar.");
+    consoleHelper.writeLine(" 0. ..will exit.");
+    consoleHelper.write("Please choose one of the above: ");
   }
 
   private static void executeMenu(ConsoleHelper consoleHelper) throws IOException {
@@ -167,7 +139,7 @@ public class Main {
         try {
           option = Integer.parseInt(ln);
         } catch (NumberFormatException ex) {
-          writeLine(consoleHelper.getWriter(), "Failed to validate option..");
+          consoleHelper.writeLine("Failed to validate option..");
         }
         if ( option  >= 0 ) {
           switch (option) {
@@ -182,13 +154,13 @@ public class Main {
             case 3 :
             case 4 :
             case 5 :
-              writeLine(consoleHelper.getWriter(), "Info: not implemented yet...");
+              consoleHelper.writeLine("Info: not implemented yet...");
               break;
             case 0:
               halt = true;
               break;
             default:
-              writeLine(consoleHelper.getWriter(), "Invalid option chosen..");
+              consoleHelper.writeLine("Invalid option chosen..");
               // will loop once more
           }
         } else {
