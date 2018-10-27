@@ -1,29 +1,11 @@
 package crs.home;
 
 import java.io.*;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-
-  private static class ConsoleHelper {
-    public ConsoleHelper() {
-      // NOTE: using these  I/O constructs to be able to execute code from both the IDE and standalone
-      bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-      bufferedWriter = new BufferedWriter(new OutputStreamWriter(System.out));
-    }
-
-    public BufferedReader getReader() {
-      return bufferedReader;
-    }
-
-    public BufferedWriter getWriter() {
-      return bufferedWriter;
-    }
-
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
-  }
 
   // wikipedia-copied quicksort
   private static <T extends Comparable<T>> void quicksort(List<T> lst, int lo, int hi) {
@@ -60,36 +42,30 @@ public class Main {
     return i;
   }
 
-  // sort-of generic interface
-  private interface Converter<T> {
-    T get(String s) throws NumberFormatException;
-  }
-
-  // int specialization
-  private static class ConverterInt implements Converter<Integer> {
-    public Integer get(String s) throws NumberFormatException {
-      int res = Integer.parseInt(s);
-      return res;
-    }
-  }
-
-  // nop specialization
-  private static class ConverterString implements Converter<String> {
-    public String get(String s) throws NumberFormatException {
-      // nop
-      return s;
-    }
-  }
-
-  private static void writeLine(BufferedWriter bufferedWriter, String message) throws IOException {
+  private static void write(BufferedWriter bufferedWriter, boolean newLineAfter, String message) throws IOException {
     bufferedWriter.write(message);
-    bufferedWriter.newLine();
+    if (newLineAfter) {
+      bufferedWriter.newLine();
+    }
     bufferedWriter.flush();
   }
 
   private static void write(BufferedWriter bufferedWriter, String message) throws IOException {
-    bufferedWriter.write(message);
-    bufferedWriter.flush();
+    write(bufferedWriter, false, message);
+  }
+
+  private static void write(BufferedWriter bufferedWriter, String format, Object ... arguments) throws IOException {
+    var s = String.format(format, arguments);
+    write(bufferedWriter, false, s);
+  }
+
+  private static void writeLine(BufferedWriter bufferedWriter, String message) throws IOException {
+    write(bufferedWriter, true, message);
+  }
+
+  private static void writeLine(BufferedWriter bufferedWriter, String format, Object ... arguments) throws IOException {
+    var s = String.format(format, arguments);
+    write(bufferedWriter, true, s);
   }
 
   private static <T> List<T> readList(ConsoleHelper consoleHelper, Converter<T> converter, String headerMessage) throws IOException {
@@ -128,7 +104,7 @@ public class Main {
   }
 
   // Write a Java program to sort a numeric array and a string array.
-  private static void exercise01ArrayAndDate(ConsoleHelper consoleHelper) throws IOException {
+  private static void exercise01SortNumericAndStringArray(ConsoleHelper consoleHelper) throws IOException {
     // int
     var convInt = new ConverterInt();
     var listInteger = readList(consoleHelper, convInt, "Please enter a list of integer values (end by supplying empty input).");
@@ -147,6 +123,16 @@ public class Main {
     quicksort(listString, 0, listString.size() - 1);
     writeLine(consoleHelper.getWriter(), "List of string values after sorting:");
     writeList(consoleHelper, listString);
+  }
+
+  private static void exercise02Sum(ConsoleHelper consoleHelper) throws IOException {
+    var converter = new ConverterDouble();
+    var list = readList(consoleHelper, converter, "Please enter a list of numeric values (end by supplying empty input).");
+    double s = 0;
+    for (var v : list) {
+      s += v;
+    }
+    writeLine(consoleHelper.getWriter(), "Sum is %g", s);
   }
 
   private static void displayMenu(ConsoleHelper consoleHelper) throws IOException{
@@ -186,10 +172,13 @@ public class Main {
         if ( option  >= 0 ) {
           switch (option) {
             case 1 :
-              exercise01ArrayAndDate(consoleHelper);
+              exercise01SortNumericAndStringArray(consoleHelper);
               halt = true;
               break;
             case 2 :
+              exercise02Sum(consoleHelper);
+              halt = true;
+              break;
             case 3 :
             case 4 :
             case 5 :
