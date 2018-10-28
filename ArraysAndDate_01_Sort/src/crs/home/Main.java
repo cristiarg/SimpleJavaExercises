@@ -41,23 +41,32 @@ public class Main {
     return i;
   }
 
+  private static <T> Tuple<T, Boolean> readValue(ConsoleHelper consoleHelper, Converter<T> converter) throws  IOException {
+    String s = consoleHelper.readLine();
+    if (s.length() > 0) {
+      try {
+        T v = converter.fromString(s);
+        return new Tuple(v, true);
+      } catch(NumberFormatException ex) {
+        consoleHelper.writeLine("Error: Failed to convert input text...");
+        // will return invalid
+      }
+    }
+    return new Tuple(null, false);
+  }
+
   private static <T> List<T> readList(ConsoleHelper consoleHelper, Converter<T> converter, String headerMessage) throws IOException {
     List<T> retList = new ArrayList<T>();
     consoleHelper.writeLine(headerMessage);
     boolean halt = false;
     for (; !halt; ) {
       consoleHelper.write("value: ");
-      String ln = consoleHelper.getReader().readLine();
-      if (ln.length() == 0) {
-        halt = true;
+      var t = readValue(consoleHelper, converter);
+      if (t.get2()) {
+        retList.add(t.get1());
       } else {
-        try {
-          T v = converter.get(ln);
-          retList.add(v);
-        } catch (NumberFormatException ex) {
-          consoleHelper.writeLine("Failed to convert input text. Ending input iteration..");
-          halt = true;
-        }
+        //consoleHelper.writeLine("Failed to convert input text. Ending input iteration..");
+        halt = true;
       }
     }
     return retList;
@@ -124,12 +133,39 @@ public class Main {
     consoleHelper.writeLine("Average value of the elements is %g.", average);
   }
 
+  private static void exercise04SearchForSpecificValue(ConsoleHelper consoleHelper) throws IOException {
+    var converter = new ConverterDouble();
+    var list = readList(consoleHelper, converter, "Please enter a list of numeric values (end by supplying empty input).");
+
+    quicksort(list, 0 , list.size() - 1);
+
+    consoleHelper.write("value to search: ");
+    var valueTuple = readValue(consoleHelper, converter);
+    if (valueTuple.get2()) {
+      var value = valueTuple.get1();
+      // binary search
+      var lo = 0;
+      var hi = list.size() - 1;
+      while (lo <= hi)  {
+        var mid = (lo + hi) / 2;
+        if (value < list.get(mid)) {
+          hi = mid - 1;
+        } else if (value > list.get(mid)) {
+          lo = mid + 1;
+        } else {
+          break;
+        }
+      }
+      consoleHelper.writeLine("Value '%g' was %sfound.", value, (lo <= hi) ? "" : "not ");
+    }
+  }
+
   private static void displayMenu(ConsoleHelper consoleHelper) throws IOException{
     consoleHelper.writeLine(" 1. Write a Java program to sort a numeric array and a string array.");
     consoleHelper.writeLine(" 2. Write a Java program to sum values of an array.");
     consoleHelper.writeLine(" 3. Write a Java program to calculate the average value of array elements.");
     consoleHelper.writeLine(" 4. Write a Java program to test if an array contains a specific value.");
-    consoleHelper.writeLine(" 5. Write a Java program to remove a specific element from an array.");
+    //consoleHelper.writeLine(" 5. Write a Java program to remove a specific element from an array.");
     //consoleHelper.writeLine(" 6. Write a Java program to insert an element (specific position) into an array.");
     //consoleHelper.writeLine(" 7. Write a Java program to find the maximum and minimum value of an array.");
     //consoleHelper.writeLine(" 8. Write a Java program to reverse an array of integer values.");
@@ -172,9 +208,12 @@ public class Main {
               halt = true;
               break;
             case 4 :
-            case 5 :
-              consoleHelper.writeLine("Info: not implemented yet...");
+              exercise04SearchForSpecificValue(consoleHelper);
+              halt = true;
               break;
+            //case 5 :
+            //  consoleHelper.writeLine("Info: not implemented yet...");
+            //  break;
             case 0:
               halt = true;
               break;

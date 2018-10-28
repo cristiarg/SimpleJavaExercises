@@ -17,8 +17,13 @@ class ConsoleHelper {
     return bufferedReader;
   }
 
-  BufferedWriter getWriter() {
-    return bufferedWriter;
+  //BufferedWriter getWriter() {
+  //  return bufferedWriter;
+  //}
+
+  String readLine() throws IOException {
+    String s = bufferedReader.readLine();
+    return s;
   }
 
   void write(boolean newLineAfter, String message) throws IOException {
