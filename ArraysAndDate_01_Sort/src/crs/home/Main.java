@@ -98,14 +98,30 @@ public class Main {
     writeList(consoleHelper, listString);
   }
 
-  private static void exercise02Sum(ConsoleHelper consoleHelper) throws IOException {
+  private static Tuple<Double, Integer> readAndSummListOfDouble(ConsoleHelper consoleHelper) throws IOException {
     var converter = new ConverterDouble();
     var list = readList(consoleHelper, converter, "Please enter a list of numeric values (end by supplying empty input).");
     double s = 0;
     for (var v : list) {
       s += v;
     }
-    consoleHelper.writeLine("Sum is %g", s);
+    return new Tuple(s, list.size());
+  }
+
+  // Write a Java program to sum values of an array.
+  private static void exercise02Sum(ConsoleHelper consoleHelper) throws IOException {
+    var t = readAndSummListOfDouble(consoleHelper);
+    consoleHelper.writeLine("Summation of the elements is %g.", t.get1());
+  }
+
+  // Write a Java program to calculate the average value of array elements.
+  private static void exercise03Average(ConsoleHelper consoleHelper) throws  IOException {
+    var t = readAndSummListOfDouble(consoleHelper);
+    var average
+        = (t.get2() == 0)
+            ? 0.0
+            : (t.get1() / t.get2());
+    consoleHelper.writeLine("Average value of the elements is %g.", average);
   }
 
   private static void displayMenu(ConsoleHelper consoleHelper) throws IOException{
@@ -152,6 +168,9 @@ public class Main {
               halt = true;
               break;
             case 3 :
+              exercise03Average(consoleHelper);
+              halt = true;
+              break;
             case 4 :
             case 5 :
               consoleHelper.writeLine("Info: not implemented yet...");
