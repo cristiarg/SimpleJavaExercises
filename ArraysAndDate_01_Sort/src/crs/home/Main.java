@@ -157,6 +157,38 @@ public class Main {
         }
       }
       consoleHelper.writeLine("Value '%g' was %sfound.", value, (lo <= hi) ? "" : "not ");
+    } else {
+      consoleHelper.writeLine("No value supplied. Bailing out..");
+    }
+  }
+
+  private static void exercise05RemoveSpecificValue(ConsoleHelper consoleHelper) throws IOException {
+    var converter = new ConverterDouble();
+    var list = readList(consoleHelper, converter, "Please enter a list of numeric values (end by supplying empty input).");
+
+    consoleHelper.writeLine("List before is: ");
+    writeList(consoleHelper, list);
+
+    consoleHelper.write("value to search: ");
+    var valueTuple = readValue(consoleHelper, converter);
+    if (valueTuple.get2()) {
+      var value = valueTuple.get1();
+      var i = 0;
+      for ( ; i < list.size(); ++i) {
+        if (Double.compare(value, list.get(i)) == 0) {
+          break;
+        }
+      }
+      if (i < list.size()) {
+        list.remove(i);
+        consoleHelper.writeLine("First found value was removed.");
+        consoleHelper.writeLine("List after removal is: ");
+        writeList(consoleHelper, list);
+      } else {
+        consoleHelper.writeLine("Value was not found.");
+      }
+    } else {
+      consoleHelper.writeLine("No value supplied. Bailing out..");
     }
   }
 
@@ -165,7 +197,7 @@ public class Main {
     consoleHelper.writeLine(" 2. Write a Java program to sum values of an array.");
     consoleHelper.writeLine(" 3. Write a Java program to calculate the average value of array elements.");
     consoleHelper.writeLine(" 4. Write a Java program to test if an array contains a specific value.");
-    //consoleHelper.writeLine(" 5. Write a Java program to remove a specific element from an array.");
+    consoleHelper.writeLine(" 5. Write a Java program to remove a specific element from an array.");
     //consoleHelper.writeLine(" 6. Write a Java program to insert an element (specific position) into an array.");
     //consoleHelper.writeLine(" 7. Write a Java program to find the maximum and minimum value of an array.");
     //consoleHelper.writeLine(" 8. Write a Java program to reverse an array of integer values.");
@@ -211,9 +243,10 @@ public class Main {
               exercise04SearchForSpecificValue(consoleHelper);
               halt = true;
               break;
-            //case 5 :
-            //  consoleHelper.writeLine("Info: not implemented yet...");
-            //  break;
+            case 5 :
+              //consoleHelper.writeLine("Info: not implemented yet...");
+              exercise05RemoveSpecificValue(consoleHelper);
+              break;
             case 0:
               halt = true;
               break;
