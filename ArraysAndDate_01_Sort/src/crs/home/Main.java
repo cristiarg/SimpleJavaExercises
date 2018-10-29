@@ -1,7 +1,10 @@
 package crs.home;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class Main {
@@ -192,7 +195,39 @@ public class Main {
     }
   }
 
+  private static void exercise10ConvertLetters(ConsoleHelper consoleHelper) throws IOException {
+    consoleHelper.write("Input string: ");
+    var s = consoleHelper.readLine();
+    var ca = s.toCharArray();
+    for (var i = 0; i < s.length(); ++i) {
+      if ( ca[i] == 'd' ) {
+        ca[i] = 'f';
+      }
+    }
+    consoleHelper.writeLine("Modified string: '%s'", new String(ca));
+  }
+
+  private static void exercise11ConvertToUppercase(ConsoleHelper consoleHelper) throws IOException {
+    consoleHelper.write("Input string: ");
+    var s = consoleHelper.readLine();
+    var ca = s.toCharArray();
+    var differenceToUppercase = 'A' - 'a';
+    for (var i = 0; i < s.length(); ++i) {
+      if (('a' <= ca[i]) && (ca[i] <= 'z')) {
+        ca[i] = (char)(ca[i] + differenceToUppercase);
+      }
+    }
+    consoleHelper.writeLine("Modified string: '%s'", new String(ca));
+  }
+
+  private static void exercise13CalendarInformation(ConsoleHelper consoleHelper) throws IOException {
+    var dateFormat = new SimpleDateFormat("yyyy MMM dd HH mm");
+    var cal = Calendar.getInstance();
+    consoleHelper.writeLine(dateFormat.format(cal.getTime()));
+  }
+
   private static void displayMenu(ConsoleHelper consoleHelper) throws IOException{
+    // TODO: initialize and use a static map out of this
     consoleHelper.writeLine(" 1. Write a Java program to sort a numeric array and a string array.");
     consoleHelper.writeLine(" 2. Write a Java program to sum values of an array.");
     consoleHelper.writeLine(" 3. Write a Java program to calculate the average value of array elements.");
@@ -202,10 +237,10 @@ public class Main {
     //consoleHelper.writeLine(" 7. Write a Java program to find the maximum and minimum value of an array.");
     //consoleHelper.writeLine(" 8. Write a Java program to reverse an array of integer values.");
     //consoleHelper.writeLine(" 9. Write a java program to get the length of a given string.");
-    //consoleHelper.writeLine("10. Write a Java program to replace all the &#39;d&#39; characters with &#39;f&#39; characters.");
-    //consoleHelper.writeLine("11. Write a Java program to convert all the characters in a string to uppercase.");
+    consoleHelper.writeLine("10. Write a Java program to replace all the 'd' characters with 'f' characters.");
+    consoleHelper.writeLine("11. Write a Java program to convert all the characters in a string to uppercase.");
     //consoleHelper.writeLine("12. Write a Java program to trim any leading or trailing whitespace from a given string.");
-    //consoleHelper.writeLine("13. Write a Java program to get and display information (year, month, day, hour, minute) of a default calendar.");
+    consoleHelper.writeLine("13. Write a Java program to get and display information (year, month, day, hour, minute) of a default calendar.");
     consoleHelper.writeLine(" 0. ..will exit.");
     consoleHelper.write("Please choose one of the above: ");
   }
@@ -246,6 +281,19 @@ public class Main {
             case 5 :
               //consoleHelper.writeLine("Info: not implemented yet...");
               exercise05RemoveSpecificValue(consoleHelper);
+              halt = true;
+              break;
+            case 10 :
+              exercise10ConvertLetters(consoleHelper);
+              halt = true;
+              break;
+            case 11 :
+              exercise11ConvertToUppercase(consoleHelper);
+              halt = true;
+              break;
+            case 13 :
+              exercise13CalendarInformation(consoleHelper);
+              halt = true;
               break;
             case 0:
               halt = true;
