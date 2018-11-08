@@ -12,8 +12,13 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
   Button buttonStart;
+  Button buttonStop;
+  Button buttonReset;
   Label labelValue;
 
+  // separate the worker from the thread
+  // we'll recycle the worker, but not the thread
+  Worker worker;
   Thread workerThread;
 
   @Override
@@ -26,7 +31,34 @@ public class Main extends Application {
     buttonStart.setOnAction(new EventHandler<ActionEvent>() {
       @Override
       public void handle(ActionEvent event) {
+        Button b = (Button)event.getSource();
+        b.setDisable(true);
         doStartWorker();
+        b.setDisable(false);
+      }
+    });
+
+    buttonStop = new Button();
+    buttonStop.setText("Stop work");
+    buttonStop.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent event) {
+        Button b = (Button)event.getSource();
+        b.setDisable(true);
+        doStopWorker();
+        b.setDisable(false);
+      }
+    });
+
+    buttonReset = new Button();
+    buttonReset.setText("Reset work");
+    buttonReset.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent event) {
+        Button b = (Button)event.getSource();
+        b.setDisable(true);
+        doResetWorker();
+        b.setDisable(false);
       }
     });
 
@@ -39,6 +71,8 @@ public class Main extends Application {
     tilePane.setVgap(5);
     tilePane.setTileAlignment(Pos.TOP_LEFT);
     tilePane.getChildren().add(buttonStart);
+    tilePane.getChildren().add(buttonStop);
+    tilePane.getChildren().add(buttonReset);
     tilePane.getChildren().add(labelValue);
 
     var scene = new Scene(tilePane, 300, 250);
@@ -46,20 +80,43 @@ public class Main extends Application {
     primaryStage.show();
   }
 
-  private void doStartWorker() {
+  private Worker getWorker() {
+    if (worker == null) {
+      worker = new Worker(labelValue);
+    }
+    return worker;
+  }
+
+  private Thread getWorkerThread() {
     if (workerThread == null) {
-      workerThread = new Thread(new Worker(labelValue));
-      workerThread.start();
+      workerThread = new Thread(getWorker());
+    }
+    return workerThread;
+  }
+
+  private void doStartWorker() {
+    Thread th = getWorkerThread();
+    if (!th.isAlive()) {
+      getWorkerThread().start();
     }
   }
 
   private void doStopWorker() {
     if (workerThread != null) {
-      final var st = workerThread.getState();
-      if (st != Thread.State.NEW && st != Thread.State.TERMINATED) {
+      if (workerThread.isAlive()) {
         workerThread.interrupt();
+        try {
+          workerThread.join();
+        } catch (InterruptedException e) {
+          // TODO: for the moment, nothing
+        }
       }
+      workerThread = null;
     }
+  }
+
+  private void doResetWorker() {
+    getWorker().reset();
   }
 
   @Override
