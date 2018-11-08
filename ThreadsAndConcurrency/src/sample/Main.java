@@ -1,12 +1,15 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Stage;
 
@@ -15,6 +18,7 @@ public class Main extends Application {
   Button buttonStop;
   Button buttonReset;
   Label labelValue;
+  Spinner<Integer> spinnerInterval;
 
   // separate the worker from the thread
   // we'll recycle the worker, but not the thread
@@ -66,6 +70,15 @@ public class Main extends Application {
     labelValue.setStyle("-fx-background-color: lightblue;");
     labelValue.setPrefWidth(100);
 
+    spinnerInterval = new Spinner<Integer>(100, 1000, 1000, 25);
+    spinnerInterval.setEditable(true);
+    spinnerInterval.valueProperty().addListener(new ChangeListener<Integer>() {
+      @Override
+      public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
+        doSetWaitInterval(newValue);
+      }
+    });
+
     var tilePane = new TilePane();
     tilePane.setHgap(5);
     tilePane.setVgap(5);
@@ -74,6 +87,7 @@ public class Main extends Application {
     tilePane.getChildren().add(buttonStop);
     tilePane.getChildren().add(buttonReset);
     tilePane.getChildren().add(labelValue);
+    tilePane.getChildren().add(spinnerInterval);
 
     var scene = new Scene(tilePane, 300, 250);
     primaryStage.setScene(scene);
@@ -116,7 +130,11 @@ public class Main extends Application {
   }
 
   private void doResetWorker() {
-    getWorker().reset();
+    getWorker().resetWork();
+  }
+
+  private void doSetWaitInterval(int _newValue) {
+    getWorker().setWaitIntervalMillis(_newValue);
   }
 
   @Override

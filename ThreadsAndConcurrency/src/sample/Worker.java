@@ -9,27 +9,52 @@ import javafx.scene.control.Label;
 public class Worker implements Runnable {
   private Label label;
   int value;
+  int waitIntervalMillis;
 
   public Worker(Label _l)
   {
     // receive a reference to the label on which we'll perform the update
     label = _l;
-    reset();
+    resetWork();
+    waitIntervalMillis = 1000;
   }
 
-  public synchronized void reset() {
-    value = 0;
+  public void resetWork() {
+    final int newValue = 0;
+    setValue(newValue);
     // make sure the reset value is visible
     dispatchWork();
   }
 
+  private synchronized void setValue(int _v) {
+    value = _v;
+  }
+
+  private synchronized int getValue() {
+    return value;
+  }
+
+  public synchronized void setWaitIntervalMillis(int _v) {
+    waitIntervalMillis = _v;
+  }
+
+  private synchronized int getWaitIntervalMillis() {
+    return waitIntervalMillis;
+  }
+
   private void dispatchWork() {
+    // gather the work to be submitted
+    // since this function is to be called from both
+    // internal and external code, it should be thread-safe
+    // wrt to accessing work
+    final var v = getValue();
+
     // this seems to be the JavaFX way of submitting actions
     // to be executed on the UI thread
     Platform.runLater(new Runnable() {
       @Override
       public void run() {
-        label.setText(Integer.toString(value));
+        label.setText(Integer.toString(v));
       }
     });
   }
@@ -44,8 +69,8 @@ public class Worker implements Runnable {
         //  break;
         //}
 
-        Thread.sleep(1000);
-        ++value;
+        Thread.sleep(getWaitIntervalMillis());
+        setValue(getValue() + 1);
       } catch (InterruptedException e) {
         break;
       }
