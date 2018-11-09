@@ -13,24 +13,26 @@ import javafx.scene.control.Spinner;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Stage;
 
-public class Main extends Application {
-  Button buttonStart;
-  Button buttonStop;
-  Button buttonReset;
-  Label labelValue;
-  Spinner<Integer> spinnerInterval;
+// NOTE:
+//  execute with:
+//  java --module-path "C:\Program Files\Java\javafx-sdk-11.0.1\lib" --add-modules=javafx.controls -classpath . sample.Main
 
-  // separate the worker from the thread
-  // we'll recycle the worker, but not the thread
-  Worker worker;
-  Thread workerThread;
+public class Main extends Application {
+  private Label labelValue;
+
+  /**
+   * separate the worker from the thread
+   * we'll recycle the worker, but not the thread
+   */
+  private Worker worker;
+  private Thread workerThread;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
     //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
     primaryStage.setTitle("Threading update");
 
-    buttonStart = new Button();
+    final var buttonStart = new Button();
     buttonStart.setText("Start work");
     buttonStart.setOnAction(new EventHandler<ActionEvent>() {
       @Override
@@ -42,7 +44,7 @@ public class Main extends Application {
       }
     });
 
-    buttonStop = new Button();
+    final var buttonStop = new Button();
     buttonStop.setText("Stop work");
     buttonStop.setOnAction(new EventHandler<ActionEvent>() {
       @Override
@@ -54,23 +56,20 @@ public class Main extends Application {
       }
     });
 
-    buttonReset = new Button();
+    final Button buttonReset = new Button();
     buttonReset.setText("Reset work");
-    buttonReset.setOnAction(new EventHandler<ActionEvent>() {
-      @Override
-      public void handle(ActionEvent event) {
-        Button b = (Button)event.getSource();
-        b.setDisable(true);
-        doResetWorker();
-        b.setDisable(false);
-      }
+    buttonReset.setOnAction(event -> {
+      Button b = (Button)event.getSource();
+      b.setDisable(true);
+      doResetWorker();
+      b.setDisable(false);
     });
 
     labelValue = new Label();
     labelValue.setStyle("-fx-background-color: lightblue;");
     labelValue.setPrefWidth(100);
 
-    spinnerInterval = new Spinner<Integer>(100, 1000, 1000, 25);
+    final var spinnerInterval = new Spinner<Integer>(100, 1000, 1000, 25);
     spinnerInterval.setEditable(true);
     spinnerInterval.valueProperty().addListener(new ChangeListener<Integer>() {
       @Override
@@ -79,7 +78,7 @@ public class Main extends Application {
       }
     });
 
-    var tilePane = new TilePane();
+    final var tilePane = new TilePane();
     tilePane.setHgap(5);
     tilePane.setVgap(5);
     tilePane.setTileAlignment(Pos.TOP_LEFT);
@@ -89,7 +88,7 @@ public class Main extends Application {
     tilePane.getChildren().add(labelValue);
     tilePane.getChildren().add(spinnerInterval);
 
-    var scene = new Scene(tilePane, 300, 250);
+    final var scene = new Scene(tilePane, 300, 250);
     primaryStage.setScene(scene);
     primaryStage.show();
   }
@@ -140,10 +139,11 @@ public class Main extends Application {
   @Override
   public void stop()
   {
+    // make sure to stop the worker thread should it be executing
     doStopWorker();
   }
 
-  public static void main(String[] args) {
+  private static void main(String[] args) {
     launch(args);
   }
 }

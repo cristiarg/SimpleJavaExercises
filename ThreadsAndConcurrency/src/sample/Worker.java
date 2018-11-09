@@ -3,15 +3,25 @@ package sample;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 
-// a runnable class that performs some work and
-// dispatches result as a text on a label
-// in a thread-safe way
-public class Worker implements Runnable {
-  private Label label;
-  int value;
-  int waitIntervalMillis;
 
-  public Worker(Label _l)
+/**
+ * a runnable class that performs some work and dispatches result as a text
+ * on a supplied label reference in a jfx-correct way
+ */
+class Worker implements Runnable {
+  private Label label;
+
+  /**
+   * value is accessed from synchronized methods only
+   */
+  private int value;
+  /**
+   * alternative to the above - finer grained; can be accessed
+   * from either synchronized or unsynchronized methods
+   */
+  private volatile int waitIntervalMillis;
+
+  Worker(Label _l)
   {
     // receive a reference to the label on which we'll perform the update
     label = _l;
@@ -19,7 +29,7 @@ public class Worker implements Runnable {
     waitIntervalMillis = 1000;
   }
 
-  public void resetWork() {
+  void resetWork() {
     final int newValue = 0;
     setValue(newValue);
     // make sure the reset value is visible
@@ -34,11 +44,11 @@ public class Worker implements Runnable {
     return value;
   }
 
-  public synchronized void setWaitIntervalMillis(int _v) {
+  void setWaitIntervalMillis(int _v) {
     waitIntervalMillis = _v;
   }
 
-  private synchronized int getWaitIntervalMillis() {
+  private int getWaitIntervalMillis() {
     return waitIntervalMillis;
   }
 
