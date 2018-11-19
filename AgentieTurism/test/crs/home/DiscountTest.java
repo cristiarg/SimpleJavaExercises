@@ -6,8 +6,8 @@ import org.junit.Assert;
 public class DiscountTest {
   @Test
   public void test() {
-    IDiscount discountSejur0Procente = TestUtils.getDiscountSejur0Procente();
-    IDiscount discountSejur10Procente = TestUtils.getDiscountSejur10Procente();
+    IDiscount discountSejur0Procente = DiscountFactory.getDiscountSejur0Procente();
+    IDiscount discountSejur10Procente = DiscountFactory.getDiscountSejur10Procente();
 
     final var sejur0Procente = new Stay( "Dest1" , new Price( 1000.0 ) , 10 );
     final var sejur10Procente = new Stay( "Dest1" , new Price( 1000.1 ) , 10 );

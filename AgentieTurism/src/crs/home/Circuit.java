@@ -14,6 +14,19 @@ class Circuit implements ICircuit {
   }
 
   @Override
+  public String representation() {
+    final var sb = new StringBuilder();
+    sb.append(getDestination());
+    sb.append('\t');
+    sb.append(getPrice().getValue());
+    sb.append('\t');
+    sb.append(getDays());
+    sb.append('\t');
+    sb.append(getTransport());
+    return  sb.toString();
+  }
+
+  @Override
   public String getDestination() {
     return destination;
   }

@@ -1,8 +1,10 @@
 package crs.home;
 
+import java.util.List;
 import java.util.Arrays;
 
-class TestUtils {
+class DiscountFactory {
+  // for testing purposes only
   static IDiscount getDiscountSejur0Procente() {
     return new Discount(
         Arrays.asList(
@@ -19,6 +21,7 @@ class TestUtils {
         10.0 );
   }
 
+  // for testing purposes only
   static IDiscount getDiscountCircuit0Procente() {
     return new Discount(
         Arrays.asList(
@@ -44,4 +47,10 @@ class TestUtils {
         15.0 );
   }
 
+  static List<IDiscount> getProductionDiscountList() {
+    return Arrays.asList(
+        DiscountFactory.getDiscountSejur10Procente(),
+        DiscountFactory.getDiscountCircuit5Procente(),
+        DiscountFactory.getDiscountCircuit15Procente() );
+  }
 }

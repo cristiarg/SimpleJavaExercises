@@ -22,8 +22,7 @@ class MaximumDiscountStrategy implements IDiscountStrategy {
     if (maximumDiscount != null) {
       return new DiscountedOffer( _offer , maximumDiscount );
     }
-    return null;
-      // TODO: or return the same offer if no discount?
+    return new DiscountedOffer(_offer);
   }
 }
 

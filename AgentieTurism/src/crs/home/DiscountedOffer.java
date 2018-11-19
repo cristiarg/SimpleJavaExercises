@@ -14,9 +14,18 @@ class DiscountedOffer implements IDiscountedOffer {
     stay = ( IStay ) _offer;
   }
 
+  DiscountedOffer( IOffer _offer ) {
+    this(_offer, null);
+  }
+
   @Override
   public IOffer getOffer() {
     return offer;
+  }
+
+  @Override
+  public boolean discounted() {
+    return (discount != null);
   }
 
   @Override
@@ -26,12 +35,33 @@ class DiscountedOffer implements IDiscountedOffer {
 
   @Override
   public IPrice getDiscountValue() {
+    assert discount != null;
+
     return stay.getPrice().getDiscountValue(discount.getPercent());
-    // TODO: caching?
   }
 
   @Override
   public IPrice getNettoValue() {
+    assert discount != null;
+
     return stay.getPrice().getNetValue(discount.getPercent());
+  }
+
+  @Override
+  public String representation() {
+    final var sb = new StringBuilder();
+    sb.append("[[ ");
+    sb.append(offer.representation());
+    sb.append(" ]]");
+    if (discounted()) {
+      sb.append("\tDiscount: -");
+      sb.append(discount.getPercent());
+      sb.append("% (-");
+      sb.append(getDiscountValue().getValue());
+      sb.append(")");
+      sb.append("\tNet: ");
+      sb.append(getNettoValue().getValue());
+    }
+    return sb.toString();
   }
 }

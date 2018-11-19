@@ -10,8 +10,8 @@ public class MaximumDiscountStrategyTest {
   @Test
   public void testSejur() {
     List<IDiscount> discountListSejur = Arrays.asList(
-        TestUtils.getDiscountSejur0Procente(),
-        TestUtils.getDiscountSejur10Procente() );
+        DiscountFactory.getDiscountSejur0Procente(),
+        DiscountFactory.getDiscountSejur10Procente() );
 
     MaximumDiscountStrategy mds = new MaximumDiscountStrategy();
 
@@ -20,6 +20,7 @@ public class MaximumDiscountStrategyTest {
 
     {
       final var ofertaCuDiscount = mds.apply( sejurCuDiscount0 , discountListSejur );
+      Assert.assertTrue( ofertaCuDiscount.discounted() );
       final var gross = ofertaCuDiscount.getGrossValue();
       final var disc = ofertaCuDiscount.getDiscountValue();
       final var netto = ofertaCuDiscount.getNettoValue();
@@ -29,11 +30,32 @@ public class MaximumDiscountStrategyTest {
 
     {
       final var ofertaCuDiscount = mds.apply( sejurCuDiscount10Procente , discountListSejur );
+      Assert.assertTrue( ofertaCuDiscount.discounted() );
       final var gross = ofertaCuDiscount.getGrossValue();
       final var disc = ofertaCuDiscount.getDiscountValue();
       final var netto = ofertaCuDiscount.getNettoValue();
       Assert.assertEquals( gross.compareTo( netto ) , 1 );
       Assert.assertEquals( disc.compareTo( Price.ZERO() ) , 1 );
+    }
+  }
+
+  @Test
+  public void testSejurNoZeroDiscount() {
+    List<IDiscount> discountListSejur = Arrays.asList(
+        DiscountFactory.getDiscountSejur10Procente() );
+
+    MaximumDiscountStrategy mds = new MaximumDiscountStrategy();
+
+    final var sejurCuDiscount0 = new Stay( "Dest1" , new Price( 999 ) , 5 );
+
+    {
+      final var ofertaCuDiscount = mds.apply( sejurCuDiscount0 , discountListSejur );
+      Assert.assertFalse( ofertaCuDiscount.discounted() );
+//      final var gross = ofertaCuDiscount.getGrossValue();
+//      final var disc = ofertaCuDiscount.getDiscountValue();
+//      final var netto = ofertaCuDiscount.getNettoValue();
+//      Assert.assertEquals( gross.compareTo( netto ) , 0 );
+//      Assert.assertEquals( disc.compareTo( Price.ZERO() ) , 0 );
     }
   }
 
@@ -50,9 +72,9 @@ public class MaximumDiscountStrategyTest {
   @Test
   public void testCircuit() {
     List<IDiscount> listaDiscount = Arrays.asList(
-        TestUtils.getDiscountCircuit0Procente(),
-        TestUtils.getDiscountCircuit5Procente(),
-        TestUtils.getDiscountCircuit15Procente());
+        DiscountFactory.getDiscountCircuit0Procente(),
+        DiscountFactory.getDiscountCircuit5Procente(),
+        DiscountFactory.getDiscountCircuit15Procente());
 
     final MaximumDiscountStrategy mds = new MaximumDiscountStrategy();
 

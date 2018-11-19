@@ -4,8 +4,12 @@ package crs.home;
 interface IDiscountedOffer {
   IOffer getOffer();
 
+  boolean discounted();
+
   IPrice getGrossValue();
   IPrice getDiscountValue();
   IPrice getNettoValue();
+
+  String representation();
 }
 
