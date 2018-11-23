@@ -6,6 +6,8 @@ interface IPrice extends Comparable< IPrice > {
   IPrice getDiscountValue( double _percent);
   IPrice getNetValue( double _percent);
 
+  String representation();
+
   @Override
   default int compareTo( IPrice _that) {
     if ( _that == null ) {

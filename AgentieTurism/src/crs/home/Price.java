@@ -1,5 +1,9 @@
 package crs.home;
 
+import java.math.RoundingMode;
+import java.util.Locale;
+import java.text.NumberFormat;
+
 class Price implements IPrice {
   private double value;
   Price( double _value ) {
@@ -22,6 +26,22 @@ class Price implements IPrice {
   @Override
   public IPrice getNetValue( double _percent) {
     return new Price( getValue() - getDiscountValue(_percent).getValue());
+  }
+
+  private static NumberFormat numberFormat;
+  private static NumberFormat getNumberFormat() {
+    if (numberFormat == null) {
+      Locale roLocale = new Locale("ro", "RO");
+      numberFormat = NumberFormat.getCurrencyInstance(roLocale);
+      numberFormat.setMaximumFractionDigits( 2 );
+      numberFormat.setGroupingUsed( true );
+    }
+    return numberFormat;
+  }
+
+  @Override
+  public String representation() {
+    return getNumberFormat().format(getValue());
   }
 
   static IPrice ZERO() {

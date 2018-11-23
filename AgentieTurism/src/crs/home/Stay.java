@@ -16,7 +16,7 @@ public class Stay implements IStay {
     final var sb = new StringBuilder();
     sb.append(getDestination());
     sb.append('\t');
-    sb.append(getPrice().getValue());
+    sb.append(getPrice().representation());
     sb.append('\t');
     sb.append(getDays());
     return  sb.toString();

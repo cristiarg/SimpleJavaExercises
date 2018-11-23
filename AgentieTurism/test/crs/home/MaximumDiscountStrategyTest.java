@@ -19,7 +19,7 @@ public class MaximumDiscountStrategyTest {
 
     {
       final var ofertaCuDiscount = mds.apply( sejurCuDiscount0 );
-      Assert.assertTrue( ofertaCuDiscount.discounted() );
+      //Assert.assertTrue( ofertaCuDiscount.discounted() );
       final var gross = ofertaCuDiscount.getGrossValue();
       final var disc = ofertaCuDiscount.getDiscountValue();
       final var netto = ofertaCuDiscount.getNettoValue();
@@ -29,12 +29,13 @@ public class MaximumDiscountStrategyTest {
 
     {
       final var ofertaCuDiscount = mds.apply( sejurCuDiscount10Procente );
-      Assert.assertTrue( ofertaCuDiscount.discounted() );
+      //Assert.assertTrue( ofertaCuDiscount.discounted() );
       final var gross = ofertaCuDiscount.getGrossValue();
       final var disc = ofertaCuDiscount.getDiscountValue();
       final var netto = ofertaCuDiscount.getNettoValue();
       Assert.assertEquals( gross.compareTo( netto ) , 1 );
       Assert.assertEquals( disc.compareTo( Price.ZERO() ) , 1 );
+      Assert.assertEquals( Price.ZERO().compareTo(  disc ) , -1 );
     }
   }
 
@@ -48,7 +49,7 @@ public class MaximumDiscountStrategyTest {
 
     {
       final var ofertaCuDiscount = mds.apply( sejurCuDiscount0 );
-      Assert.assertFalse( ofertaCuDiscount.discounted() );
+      //Assert.assertFalse( ofertaCuDiscount.discounted() );
 //      final var gross = ofertaCuDiscount.getGrossValue();
 //      final var disc = ofertaCuDiscount.getDiscountValue();
 //      final var netto = ofertaCuDiscount.getNettoValue();

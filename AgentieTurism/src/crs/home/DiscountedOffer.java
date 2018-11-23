@@ -18,8 +18,7 @@ class DiscountedOffer implements IDiscountedOffer {
     this(_offer, null);
   }
 
-  @Override
-  public boolean discounted() {
+  private boolean discounted() {
     return (discount != null);
   }
 
@@ -30,16 +29,20 @@ class DiscountedOffer implements IDiscountedOffer {
 
   @Override
   public IPrice getDiscountValue() {
-    assert discount != null;
-
-    return stay.getPrice().getDiscountValue(discount.getPercent());
+    if (discounted()) {
+      return stay.getPrice().getDiscountValue(discount.getPercent());
+    } else {
+      return Price.ZERO();
+    }
   }
 
   @Override
   public IPrice getNettoValue() {
-    assert discount != null;
-
-    return stay.getPrice().getNetValue(discount.getPercent());
+    if (discounted()) {
+      return stay.getPrice().getNetValue(discount.getPercent());
+    } else {
+      return stay.getPrice();
+    }
   }
 
   @Override
@@ -62,10 +65,10 @@ class DiscountedOffer implements IDiscountedOffer {
       sb.append("\tDiscount: -");
       sb.append(discount.getPercent());
       sb.append("% (-");
-      sb.append(getDiscountValue().getValue());
+      sb.append(getDiscountValue().representation());
       sb.append(")");
       sb.append("\tNet: ");
-      sb.append(getNettoValue().getValue());
+      sb.append(getNettoValue().representation());
     }
     return sb.toString();
   }
