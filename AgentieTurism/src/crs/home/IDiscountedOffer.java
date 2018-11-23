@@ -1,9 +1,7 @@
 package crs.home;
 
 // TODO: or inherit from IOffer>
-interface IDiscountedOffer {
-  IOffer getOffer();
-
+interface IDiscountedOffer extends IOffer {
   boolean discounted();
 
   IPrice getGrossValue();

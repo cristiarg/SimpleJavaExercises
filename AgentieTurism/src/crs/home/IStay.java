@@ -7,6 +7,11 @@ interface IStay extends IOffer {
     return EType.Stay;
   }
 
+  @Override
+  default String getName() {
+    return getDestination();
+  }
+
   String getDestination();
   IPrice getPrice();
   int getDays();

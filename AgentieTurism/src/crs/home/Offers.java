@@ -1,7 +1,7 @@
 package crs.home;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 class OffersSettings {
   static final int MAX_OFFER_COUNT = 10;
@@ -14,34 +14,49 @@ class TooManyOffersException extends Exception {
 }
 
 class Offers {
-  private List<IDiscountedOffer> offerList = new ArrayList<>();
-  private MaximumDiscountStrategy discountStrategy = new MaximumDiscountStrategy();
-    // TODO: discount strategy should be supplied from afar
-  private List<IDiscount> discountList = DiscountFactory.getProductionDiscountList();
-    // TODO: same for this
+  private Map<String, Integer> nameKeyedIndexMap = new HashMap<>();
+    // used to keep the initial added order
 
-  void add(IOffer _offer) throws TooManyOffersException {
-    if (offerList.size() >= OffersSettings.MAX_OFFER_COUNT) {
+  private Map<Integer, IDiscountedOffer > offerMap = new HashMap<>();
+
+  private IDiscountStrategy discountStrategy;
+
+  Offers(IDiscountStrategy _discountStrategy) {
+    discountStrategy = _discountStrategy;
+  }
+
+  boolean add(IOffer _offer) throws TooManyOffersException {
+    if (offerMap.size() >= OffersSettings.MAX_OFFER_COUNT) {
       throw new TooManyOffersException( "Maximum number of offers exceeded." );
     }
-    final var discountedOffer = discountStrategy.apply(_offer,  discountList);
-    offerList.add( discountedOffer );
+    String name = _offer.getName();
+    if (nameKeyedIndexMap.containsKey( name )) {
+      return false;
+    } else {
+      final int index = nameKeyedIndexMap.size();
+      nameKeyedIndexMap.put(name, index);
+      final IDiscountedOffer discountedOffer = discountStrategy.apply(_offer);
+      offerMap.put(index, discountedOffer);
+      return true;
+    }
   }
 
   void displayOffers() {
-    for ( final var discountedOffer : offerList ) {
+    for ( final Integer indexKey : offerMap.keySet() ) {
+      final IDiscountedOffer discountedOffer = offerMap.get(indexKey);
       System.out.println( discountedOffer.representation() );
     }
 
-    if (offerList.size() == 0 ) {
+    if (offerMap.size() == 0 ) {
       System.out.println( "<< none >>" );
     }
   }
 
   private void displayOffers(EType _type) {
     int count = 0;
-    for ( final var discountedOffer : offerList ) {
-      if ( discountedOffer.getOffer().getType() == _type ) {
+    for ( final Integer indexKey : offerMap.keySet() ) {
+      final IDiscountedOffer discountedOffer = offerMap.get(indexKey);
+      if ( discountedOffer.getType() == _type ) {
         ++count;
         System.out.println( discountedOffer.representation() );
       }
@@ -59,6 +74,17 @@ class Offers {
     displayOffers(EType.Circuit);
   }
 
-  void deleteOffer(String _destination) {
+  boolean deleteOffer(String _name) {
+    if( nameKeyedIndexMap.containsKey( _name )) {
+      final Integer index = nameKeyedIndexMap.get(_name);
+      assert offerMap.containsKey( index );
+
+      nameKeyedIndexMap.remove( _name );
+      offerMap.remove( index );
+      return true;
+
+    } else {
+      return false;
+    }
   }
 }

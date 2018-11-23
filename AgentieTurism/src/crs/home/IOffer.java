@@ -6,6 +6,8 @@ package crs.home;
 interface IOffer {
   EType getType();
 
+  String getName();
+
   String representation();
     // TODO: there should be another class [hierarchy] that performs this adaptation
 }

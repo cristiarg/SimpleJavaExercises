@@ -19,11 +19,6 @@ class DiscountedOffer implements IDiscountedOffer {
   }
 
   @Override
-  public IOffer getOffer() {
-    return offer;
-  }
-
-  @Override
   public boolean discounted() {
     return (discount != null);
   }
@@ -45,6 +40,16 @@ class DiscountedOffer implements IDiscountedOffer {
     assert discount != null;
 
     return stay.getPrice().getNetValue(discount.getPercent());
+  }
+
+  @Override
+  public EType getType() {
+    return offer.getType();
+  }
+
+  @Override
+  public String getName() {
+    return offer.getName();
   }
 
   @Override

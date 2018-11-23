@@ -47,7 +47,7 @@ class DiscountFactory {
         15.0 );
   }
 
-  static List<IDiscount> getProductionDiscountList() {
+  static List< IDiscount > getProductionDiscountList() {
     return Arrays.asList(
         DiscountFactory.getDiscountSejur10Procente(),
         DiscountFactory.getDiscountCircuit5Procente(),

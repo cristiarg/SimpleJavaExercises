@@ -23,50 +23,72 @@ enum EMenuActionResult {
 
 interface IMenuAction {
   EMenuActionResult act(String[] _params, Offers _offers);
+  String getUsage();
 }
 
 class MenuActionAddStay implements IMenuAction {
   // minimal caching to not perform parsing twice
-  private String destination;
-  private double price;
-  private int days;
+  protected String destination;
+  protected double price;
+  protected int days;
 
-  private boolean validateParams(String[] _params) {
+  protected void invalidateParams() {
     destination = "";
     price = Double.NaN;
     days = -1;
+  }
+
+  protected boolean validateDestination(String _destination) {
+    destination = _destination;
+    return true;
+  }
+
+  protected boolean validatePrice(String _price) {
+    try {
+      price = Double.parseDouble( _price );
+      return true;
+    } catch (NumberFormatException e) {
+      System.out.println( "ERROR: value for 'price' is not a number" );
+      return false;
+    }
+  }
+
+  protected boolean validateDays(String _days) {
+    try {
+      days = Integer.parseInt( _days );
+      return true;
+    } catch (NumberFormatException e) {
+      System.out.println( "ERROR: value for 'days' is not a number" );
+      return false;
+    }
+  }
+
+  protected boolean validateParams(String[] _params) {
     if (_params.length != 4) {
-      System.out.println( "ERROR: addStay: incorrect number of parameters; expected: 3" );
+      System.out.println( "ERROR: incorrect number of parameters; expected: 3" );
       return false;
     } else {
-      destination = _params[1];
-
-      final var priceAsString = _params[2];
-      try {
-        price = Double.parseDouble( priceAsString );
-      } catch (NumberFormatException e) {
-        System.out.println( "ERROR: addStay: value for 'price' is not a number" );
-        return false;
+      boolean valid = validateDestination( _params[1] );
+      if (valid) {
+        valid = validatePrice( _params[2] );
       }
-
-      final var daysAsString = _params[3];
-      try {
-        days = Integer.parseInt( daysAsString );
-      } catch (NumberFormatException e) {
-        System.out.println( "ERROR: addStay: value for 'days' is not a number" );
-        return false;
+      if (valid) {
+        valid = validateDays( _params[3] );
       }
-
-      return true;
+      return valid;
     }
   }
 
   @Override
   public EMenuActionResult act( String[] _params , Offers _offers ) {
+    invalidateParams();
     if (validateParams( _params )) {
-      final var stay = new Stay( destination, new Price(price), days);
+      final IOffer offer = new Stay( destination, new Price(price), days);
       try {
-        _offers.add(stay);
+        if ( !_offers.add(offer) ) {
+          System.out.println( "ERROR: addStay: failed to add" );
+          return EMenuActionResult.Failure;
+        }
         return EMenuActionResult.Success;
       } catch (TooManyOffersException e) {
         System.out.println( "ERROR: addStay: " + e.getMessage() );
@@ -74,13 +96,68 @@ class MenuActionAddStay implements IMenuAction {
     }
     return EMenuActionResult.Failure;
   }
+
+  @Override
+  public String getUsage() {
+    return "<destination> <price> <days>";
+  }
 }
 
-class MenuActionAddCircuit implements IMenuAction {
+final class MenuActionAddCircuit extends MenuActionAddStay {
+  private String transport;
+
+  @Override
+  protected void invalidateParams() {
+    super.invalidateParams();
+    transport = "";
+  }
+
+  private boolean validateTransport(String _transport) {
+    transport = _transport;
+    return true;
+  }
+
+  @Override
+  protected boolean validateParams(String[] _params) {
+    if (_params.length != 5) {
+      System.out.println( "ERROR: addCircuit: incorrect number of parameters; expected: 4" );
+      return false;
+    } else {
+      boolean valid = validateDestination( _params[1] );
+      if (valid) {
+        valid = validatePrice( _params[2] );
+      }
+      if (valid) {
+        valid = validateDays( _params[3] );
+      }
+      if (valid) {
+        valid = validateTransport( _params[4] );
+      }
+      return valid;
+    }
+  }
+
   @Override
   public EMenuActionResult act( String[] _params , Offers _offers ) {
-    System.out.println( "ERROR: 'addCircuit' not implemented" );
-    return EMenuActionResult.Success;
+    invalidateParams();
+    if (validateParams( _params )) {
+      final IOffer offer = new Circuit( destination, new Price(price), days, transport);
+      try {
+        if ( !_offers.add(offer) ) {
+          System.out.println( "ERROR: addCircuit: failed to add" );
+          return EMenuActionResult.Failure;
+        }
+        return EMenuActionResult.Success;
+      } catch (TooManyOffersException e) {
+        System.out.println( "ERROR: addStay: " + e.getMessage() );
+      }
+    }
+    return EMenuActionResult.Failure;
+  }
+
+  @Override
+  public String getUsage() {
+    return "<destination> <price> <days> <transport>";
   }
 }
 
@@ -92,6 +169,11 @@ class MenuActionListAll implements IMenuAction {
     System.out.println();
     return EMenuActionResult.Success;
   }
+
+  @Override
+  public String getUsage() {
+    return "";
+  }
 }
 
 class MenuActionListStays implements IMenuAction {
@@ -101,6 +183,11 @@ class MenuActionListStays implements IMenuAction {
     _offers.displayStays();
     System.out.println();
     return EMenuActionResult.Success;
+  }
+
+  @Override
+  public String getUsage() {
+    return "";
   }
 }
 
@@ -112,13 +199,43 @@ class MenuActionListCircuits implements IMenuAction {
     System.out.println();
     return EMenuActionResult.Success;
   }
+
+  @Override
+  public String getUsage() {
+    return "";
+  }
 }
 
 class MenuActionDelete implements IMenuAction {
+  private String name;
+
+  private boolean validateParams(String[] _params) {
+    if (_params.length != 2) {
+      System.out.println( "ERROR: incorrect number of parameters; expected: 1" );
+      return false;
+    } else {
+      name = _params[ 1 ];
+      return true;
+    }
+  }
+
   @Override
   public EMenuActionResult act( String[] _params , Offers _offers ) {
-    System.out.println( "ERROR: 'delete' not implemented" );
-    return EMenuActionResult.Success;
+    if (validateParams( _params )) {
+      final boolean removed = _offers.deleteOffer( name );
+      if (removed) {
+        System.out.println( "Offer was deleted." );
+        return EMenuActionResult.Success;
+      } else {
+        System.out.println( "Could not delete offer." );
+      }
+    }
+    return EMenuActionResult.Failure;
+  }
+
+  @Override
+  public String getUsage() {
+    return "<destination>";
   }
 }
 
@@ -127,6 +244,11 @@ class MenuActionExit implements IMenuAction {
   public EMenuActionResult act( String[] _params , Offers _offers ) {
     System.out.println( "Exiting application .." );
     return EMenuActionResult.Halt;
+  }
+
+  @Override
+  public String getUsage() {
+    return "";
   }
 }
 
@@ -146,13 +268,13 @@ class Main {
 
   private static void displayMenu(ConsoleHelper _console) throws IOException {
     _console.writeLine("Please choose a command:");
-    for(final var comm : commandMap.keySet()) {
-      _console.writeLine(comm.toString());
+    for(final EMenuAction comm : commandMap.keySet()) {
+      IMenuAction menuAction = commandMap.get(comm);
+      _console.writeLine(comm.toString() + " " + menuAction.getUsage());
     }
   }
 
   private static EMenuActionResult decodeAndDispatchCommand(String _line, Offers _offers) {
-    EMenuActionResult result = EMenuActionResult.NotFound;
     final var tokenArray = _line.split("\\s+");
 
     // try to unambiguously find a matching command
@@ -176,20 +298,17 @@ class Main {
       System.out.println( "ERROR: input action is ambiguous; matches more than one option" );
       return EMenuActionResult.NotFound;
     } else {
-      //final String[] tokenSubArray = Arrays.copyOfRange(tokenArray, 1, tokenArray.length - 1);
       final var res = menuAction.act(tokenArray, _offers);
       return res;
     }
   }
 
   public static void main(String[] args) throws IOException {
-    // if ( tip == sejur && pret > 1000 ) { 10% }
-    // if ( tip == circuit && pret > 1000 ) { 5% }
-    // if ( tip == circuit && pret > 1000 && durata > 10 ) { 15% }
-
     ConsoleHelper consoleHelper = new ConsoleHelper();
 
-    Offers offers = new Offers();
+    final List< IDiscount > discountList = DiscountFactory.getProductionDiscountList();
+    final IDiscountStrategy discountStrategy = new MaximumDiscountStrategy( discountList );
+    Offers offers = new Offers( discountStrategy );
 
     boolean halt = false;
     while(!halt) {
@@ -197,9 +316,6 @@ class Main {
       final var line = consoleHelper.readLine();
       final var res = decodeAndDispatchCommand( line, offers );
       halt = (res == EMenuActionResult.Halt);
-//      if (res == EMenuActionResult.Failure) {
-//        System.out.println( "ERROR: action failed" );
-//      }
     }
   }
 }

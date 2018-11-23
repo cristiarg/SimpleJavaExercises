@@ -7,10 +7,16 @@ import java.util.List;
  * reduction in price for an offer
  */
 class MaximumDiscountStrategy implements IDiscountStrategy {
+  private List< IDiscount > discountList;
+
+  MaximumDiscountStrategy(List< IDiscount > _discountList) {
+    discountList = _discountList;
+  }
+
   @Override
-  public IDiscountedOffer apply( IOffer _offer , List<IDiscount> _discountList ) {
+  public IDiscountedOffer apply( IOffer _offer ) {
     IDiscount maximumDiscount = null;
-    for(IDiscount d : _discountList ) {
+    for( IDiscount d : discountList ) {
       if(d.isApplicableFor( _offer )) {
         if (maximumDiscount == null) {
           maximumDiscount = d;
