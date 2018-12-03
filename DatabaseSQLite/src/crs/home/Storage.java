@@ -34,12 +34,14 @@ public class Storage implements AutoCloseable {
     }
   }
 
-  private void executeStatement(String _sql) {
+  private void executeStatement(boolean _expectedToFail, String _sql) {
     try {
       Statement stStudent = createStatement();
       stStudent.execute( _sql );
     } catch (SQLException ex) {
-      System.err.println( "ERROR: when executing statement: '" + _sql + "': " + ex.toString() );
+      if(!_expectedToFail) {
+        System.err.println( "ERROR: when executing statement: '" + _sql + "': " + ex.toString() );
+      }
     }
   }
 
@@ -74,23 +76,27 @@ public class Storage implements AutoCloseable {
   }
 
   private void createSchema() {
-    executeStatement(
+    //
+    // version 1
+    //
+    executeStatement( false,
         "CREATE TABLE IF NOT EXISTS Student ("
         + " id INTEGER PRIMARY KEY,"
         + " name text NOT NULL,"
         + " code text,"
         + " phone text, "
+        //+ " status text"
         + " CONSTRAINT student_name_unique UNIQUE (name)"
         + ")" );
 
-    executeStatement(
+    executeStatement( false,
         "CREATE TABLE IF NOT EXISTS Domain("
         + " id INTEGER PRIMARY KEY,"
         + " domain text NOT NULL, "
         + " CONSTRAINT domain_domain_unique UNIQUE (domain)"
         + ")" );
 
-    executeStatement(
+    executeStatement( false,
         "CREATE TABLE IF NOT EXISTS Mark("
         + " id INTEGER PRIMARY KEY,"
         + " id_student INTEGER NOT NULL,"
@@ -98,8 +104,28 @@ public class Storage implements AutoCloseable {
         + " mark INTEGER NOT NULL,"
         + " FOREIGN KEY (id_student) REFERENCES Student(id)," // ON UPDATE CASCADE ON DELETE RESTRICT
         + " FOREIGN KEY (id_domain) REFERENCES Domain(id),"
-        + " CONSTRAINT mark_id_student_id_domain_unique UNIQUE (id_student, id_domain)"
+        + " CONSTRAINT mark_mark_id_student_id_domain_unique UNIQUE (id_student, id_domain)"
         + ")" );
+
+    //
+    // version 2
+    //
+    executeStatement( false,
+    "ALTER TABLE Student ADD COLUMN status text");
+
+    //executeStatement( "DROP TRIGGER IF EXISTS student_status_after_insert_trigger" );
+    executeStatement( false,
+        "CREATE TRIGGER IF NOT EXISTS student_status_after_insert_trigger"
+        + " AFTER INSERT ON Mark "
+        + " FOR EACH ROW"
+        + " BEGIN"
+        + "  UPDATE Student SET status = ("
+        + "    SELECT CASE WHEN AVG(ALL mark) >= 5.0 THEN 'A' ELSE 'N' END"
+        + "    FROM Mark"
+        + "    WHERE NEW.id_student = Mark.id_student )"
+        + "   WHERE NEW.id_student = Student.id ;"
+        + " END"
+    );
   }
 
   @Override
