@@ -1,11 +1,11 @@
-package crs.home;
+package crs.home.model;
 
 public class Stay implements IStay {
   private String destination;
   private IPrice price;
   private int days;
 
-  Stay( String _destination , IPrice _price , int _days ) {
+  public Stay( String _destination , IPrice _price , int _days ) {
     destination = _destination;
     price = _price;
     days = _days;

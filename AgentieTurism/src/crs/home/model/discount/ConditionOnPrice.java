@@ -1,18 +1,23 @@
-package crs.home;
+package crs.home.model.discount;
 
 // TODO: two implementations: minimum price AND price interval
 
-final class ConditionOnPrice implements ICondition {
+import crs.home.model.Price;
+import crs.home.model.IOffer;
+import crs.home.model.IPrice;
+import crs.home.model.IStay;
+
+public final class ConditionOnPrice implements ICondition {
   private IPrice min;
   private IPrice max;
 
-  ConditionOnPrice( IPrice _min, IPrice _max) {
+  public ConditionOnPrice( IPrice _min, IPrice _max) {
     assert _min.compareTo(_max) <= 0;
     min = _min;
     max = _max;
   }
 
-  ConditionOnPrice( IPrice _min) {
+  public ConditionOnPrice( IPrice _min) {
     this(_min, Price.MAX());
   }
 

@@ -3,6 +3,14 @@ package crs.home;
 import java.util.List;
 import java.util.Arrays;
 
+import crs.home.model.ICircuit;
+import crs.home.model.discount.IDiscount;
+import crs.home.logic.IDiscountStrategy;
+import crs.home.logic.DiscountFactory;
+import crs.home.logic.MaximumDiscountStrategy;
+import crs.home.model.Circuit;
+import crs.home.model.Price;
+import crs.home.model.Stay;
 import org.junit.Test;
 import org.junit.Assert;
 
@@ -59,7 +67,7 @@ public class MaximumDiscountStrategyTest {
   }
 
   private void testCircuitDiscount0( ICircuit _circuit, IDiscountStrategy _strategy,
-                            List< IDiscount > _discountList) {
+                                     List< IDiscount > _discountList) {
     final var ofertaCuDiscount = _strategy.apply( _circuit );
     final var gross = ofertaCuDiscount.getGrossValue();
     final var disc = ofertaCuDiscount.getDiscountValue();

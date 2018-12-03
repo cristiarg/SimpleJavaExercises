@@ -1,14 +1,16 @@
-package crs.home;
+package crs.home.model.discount;
+
+import crs.home.model.IOffer;
 
 import java.util.List;
 
-class Discount implements IDiscount {
+public class Discount implements IDiscount {
   private List< ICondition > listCondition;
     // TODO: also add interval; bounded or unbounded
   private double percent;
     // TODO: maybe more formalization for this?
 
-  Discount( List< ICondition > _lc, double _percent ) {
+  public Discount( List< ICondition > _lc, double _percent ) {
     assert _lc != null && _lc.size() > 0;
     assert 0.0 <= _percent && _percent <= 100.0;
 

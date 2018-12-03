@@ -1,5 +1,9 @@
 package crs.home;
 
+import crs.home.model.discount.IDiscount;
+import crs.home.logic.DiscountFactory;
+import crs.home.model.Price;
+import crs.home.model.Stay;
 import org.junit.Test;
 import org.junit.Assert;
 

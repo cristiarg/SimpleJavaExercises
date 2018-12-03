@@ -1,12 +1,18 @@
-package crs.home;
+package crs.home.model.discount;
+
+import crs.home.model.HolidayType;
+import crs.home.model.IOffer;
+import crs.home.model.IPrice;
+import crs.home.model.IStay;
+import crs.home.model.Price;
 
 // TODO: this looks too much like an workaround; should just be another implementation of IOffer/IStay
-class DiscountedOffer implements IDiscountedOffer {
+public class DiscountedOffer implements IDiscountedOffer {
   private IOffer offer;
   private IDiscount discount;
   private IStay stay; // TODO: workaround
 
-  DiscountedOffer( IOffer _offer , IDiscount _discount) {
+  public DiscountedOffer( IOffer _offer , IDiscount _discount) {
     offer = _offer;
     discount = _discount;
 
@@ -14,7 +20,7 @@ class DiscountedOffer implements IDiscountedOffer {
     stay = ( IStay ) _offer;
   }
 
-  DiscountedOffer( IOffer _offer ) {
+  public DiscountedOffer( IOffer _offer ) {
     this(_offer, null);
   }
 
@@ -46,7 +52,7 @@ class DiscountedOffer implements IDiscountedOffer {
   }
 
   @Override
-  public EType getType() {
+  public HolidayType getType() {
     return offer.getType();
   }
 

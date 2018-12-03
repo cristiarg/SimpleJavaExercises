@@ -1,6 +1,6 @@
-package crs.home;
+package crs.home.model;
 
-interface IPrice extends Comparable< IPrice > {
+public interface IPrice extends Comparable< IPrice > {
   double getValue();
 
   IPrice getDiscountValue( double _percent);

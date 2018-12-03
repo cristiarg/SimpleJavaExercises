@@ -1,10 +1,10 @@
-package crs.home;
+package crs.home.model;
 
 /**
  * TODO: interface definition is too thin
  */
-interface IOffer {
-  EType getType();
+public interface IOffer {
+  HolidayType getType();
 
   String getName();
 

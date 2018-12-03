@@ -1,4 +1,4 @@
-package crs.home;
+package crs.home.console;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -6,11 +6,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 
-class ConsoleHelper {
+public class ConsoleHelper {
   private BufferedReader bufferedReader;
   private BufferedWriter bufferedWriter;
 
-  ConsoleHelper() {
+  public ConsoleHelper() {
     // NOTE: using these  I/O constructs to be able to execute code from both the IDE and standalone
     bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     bufferedWriter = new BufferedWriter(new OutputStreamWriter(System.out));
@@ -24,7 +24,7 @@ class ConsoleHelper {
   //  return bufferedWriter;
   //}
 
-  String readLine() throws IOException {
+  public String readLine() throws IOException {
     String s = bufferedReader.readLine();
     return s;
   }
@@ -46,7 +46,7 @@ class ConsoleHelper {
     write(false, s);
   }
 
-  void writeLine(String message) throws IOException {
+  public void writeLine( String message ) throws IOException {
     write(true, message);
   }
 

@@ -1,15 +1,18 @@
-package crs.home;
+package crs.home.model.discount;
 
-final class ConditionOnDays implements ICondition {
+import crs.home.model.IOffer;
+import crs.home.model.IStay;
+
+public final class ConditionOnDays implements ICondition {
   private int min;
   private int max;
 
-  ConditionOnDays( int _min, int _max) {
+  public ConditionOnDays( int _min, int _max) {
     min = _min;
     max = _max;
   }
 
-  ConditionOnDays( int _min) {
+  public ConditionOnDays( int _min) {
     this(_min, Integer.MAX_VALUE);
   }
 

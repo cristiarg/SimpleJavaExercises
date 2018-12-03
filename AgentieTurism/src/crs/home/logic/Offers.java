@@ -1,19 +1,13 @@
-package crs.home;
+package crs.home.logic;
+
+import crs.home.model.HolidayType;
+import crs.home.model.discount.IDiscountedOffer;
+import crs.home.model.IOffer;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class OffersSettings {
-  static final int MAX_OFFER_COUNT = 10;
-}
-
-class TooManyOffersException extends Exception {
-  TooManyOffersException(String _message) {
-    super(_message);
-  }
-}
-
-class Offers {
+public class Offers {
   private Map<String, Integer> nameKeyedIndexMap = new HashMap<>();
     // used to keep the initial added order
 
@@ -21,11 +15,11 @@ class Offers {
 
   private IDiscountStrategy discountStrategy;
 
-  Offers(IDiscountStrategy _discountStrategy) {
+  public Offers(IDiscountStrategy _discountStrategy) {
     discountStrategy = _discountStrategy;
   }
 
-  boolean add(IOffer _offer) throws TooManyOffersException {
+  public boolean add( IOffer _offer) throws TooManyOffersException {
     if (offerMap.size() >= OffersSettings.MAX_OFFER_COUNT) {
       throw new TooManyOffersException( "Maximum number of offers exceeded." );
     }
@@ -41,7 +35,7 @@ class Offers {
     }
   }
 
-  void displayOffers() {
+  public void displayOffers() {
     for ( final Integer indexKey : offerMap.keySet() ) {
       final IDiscountedOffer discountedOffer = offerMap.get(indexKey);
       System.out.println( discountedOffer.representation() );
@@ -52,7 +46,7 @@ class Offers {
     }
   }
 
-  private void displayOffers(EType _type) {
+  private void displayOffers( HolidayType _type) {
     int count = 0;
     for ( final Integer indexKey : offerMap.keySet() ) {
       final IDiscountedOffer discountedOffer = offerMap.get(indexKey);
@@ -66,15 +60,15 @@ class Offers {
     }
   }
 
-  void displayStays() {
-    displayOffers(EType.Stay);
+  public void displayStays() {
+    displayOffers( HolidayType.Stay);
   }
 
-  void displayCircuits() {
-    displayOffers(EType.Circuit);
+  public void displayCircuits() {
+    displayOffers( HolidayType.Circuit);
   }
 
-  boolean deleteOffer(String _name) {
+  public boolean deleteOffer(String _name) {
     if( nameKeyedIndexMap.containsKey( _name )) {
       final Integer index = nameKeyedIndexMap.get(_name);
       assert offerMap.containsKey( index );
@@ -87,4 +81,6 @@ class Offers {
       return false;
     }
   }
+
 }
+

@@ -1,12 +1,12 @@
-package crs.home;
+package crs.home.model;
 
-class Circuit implements ICircuit {
+public class Circuit implements ICircuit {
   private String destination;
   private IPrice price;
   private int days;
   private String transport;
 
-  Circuit( String _destination , IPrice _price , int _days , String _transport) {
+  public Circuit( String _destination , IPrice _price , int _days , String _transport) {
     destination = _destination;
     price = _price;
     days = _days;

@@ -1,10 +1,12 @@
-package crs.home;
+package crs.home.model.discount;
+
+import crs.home.model.IOffer;
 
 /**
  * an interface to specify a percent discounted value and whether
  * or not it applies to a certain offer;
  */
-interface IDiscount {
+public interface IDiscount {
   double getPercent();
   boolean isApplicableFor( IOffer _offer );
 }

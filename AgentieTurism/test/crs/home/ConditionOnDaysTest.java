@@ -1,5 +1,9 @@
 package crs.home;
 
+import crs.home.model.Circuit;
+import crs.home.model.Price;
+import crs.home.model.Stay;
+import crs.home.model.discount.ConditionOnDays;
 import org.junit.Test;
 import org.junit.Assert;
 

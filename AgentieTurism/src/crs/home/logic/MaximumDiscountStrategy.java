@@ -1,4 +1,9 @@
-package crs.home;
+package crs.home.logic;
+
+import crs.home.model.discount.IDiscount;
+import crs.home.model.discount.IDiscountedOffer;
+import crs.home.model.IOffer;
+import crs.home.model.discount.DiscountedOffer;
 
 import java.util.List;
 
@@ -6,10 +11,10 @@ import java.util.List;
  * discount strategy that aims for the greatest
  * reduction in price for an offer
  */
-class MaximumDiscountStrategy implements IDiscountStrategy {
+public class MaximumDiscountStrategy implements IDiscountStrategy {
   private List< IDiscount > discountList;
 
-  MaximumDiscountStrategy(List< IDiscount > _discountList) {
+  public MaximumDiscountStrategy(List< IDiscount > _discountList) {
     discountList = _discountList;
   }
 

@@ -1,12 +1,11 @@
-package crs.home;
+package crs.home.model;
 
-import java.math.RoundingMode;
 import java.util.Locale;
 import java.text.NumberFormat;
 
-class Price implements IPrice {
+public class Price implements IPrice {
   private double value;
-  Price( double _value ) {
+  public Price( double _value ) {
     assert _value >= 0;
 
     value = _value;
@@ -44,11 +43,11 @@ class Price implements IPrice {
     return getNumberFormat().format(getValue());
   }
 
-  static IPrice ZERO() {
+  public static IPrice ZERO() {
     return new Price( 0.0 );
   }
 
-  static IPrice MAX() {
+  public static IPrice MAX() {
     return new Price(Double.MAX_VALUE);
   }
 

@@ -1,10 +1,10 @@
-package crs.home;
+package crs.home.model;
 
 // TODO: extract a new interface IDiscountable
-interface IStay extends IOffer {
+public interface IStay extends IOffer {
   @Override
-  default EType getType() {
-    return EType.Stay;
+  default HolidayType getType() {
+    return HolidayType.Stay;
   }
 
   @Override

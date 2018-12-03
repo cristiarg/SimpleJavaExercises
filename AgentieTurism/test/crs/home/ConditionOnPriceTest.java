@@ -1,5 +1,8 @@
 package crs.home;
 
+import crs.home.model.Price;
+import crs.home.model.Stay;
+import crs.home.model.discount.ConditionOnPrice;
 import org.junit.Test;
 import org.junit.Assert;
 
