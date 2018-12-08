@@ -10,8 +10,8 @@ public class FileSystemReceiverSettings {
   private int directoryTimeOut;
   private TimeUnit directoryTimeoutUnit;
 
-  public FileSystemReceiverSettings( String _directory , int _directoryTimeOut ,
-                                     TimeUnit _directoryTimeoutUnit ) throws ReceiverException {
+  public FileSystemReceiverSettings(String _directory, int _directoryTimeOut,
+                                    TimeUnit _directoryTimeoutUnit) throws ReceiverException {
     directory = _directory;
     directoryTimeOut = _directoryTimeOut;
     directoryTimeoutUnit = _directoryTimeoutUnit;
@@ -21,29 +21,32 @@ public class FileSystemReceiverSettings {
 
   private void check() throws ReceiverException {
     if (getDirectory().length() == 0) {
-      throw new ReceiverException( "Directory value is empty." );
+      throw new ReceiverException("Configuration: Directory value is empty.");
     }
-
-    File file = new File(getDirectory());
-    if (!file.exists()) {
-      throw new ReceiverException( "Directory does not exist" );
+    File d = new File(getDirectory());
+    if (!d.exists()) {
+      throw new ReceiverException("Configuration: Directory does not exist");
     }
+    if (!d.isDirectory()) {
+      throw new ReceiverException("Configuration: Not a directory.");
+    }
+    directory = d.getAbsolutePath().toString();
 
-    if (!file.isDirectory()) {
-      throw new ReceiverException( "Not a directory." );
+    // there is no 'unsigned int'
+    if (getDirectoryTimeOut() < 0) {
+      throw new ReceiverException("Configuration: Negative timeout.");
     }
   }
 
-  public String getDirectory() {
+  public synchronized String getDirectory() {
     return directory;
   }
 
-  public int getDirectoryTimeOut() {
+  public synchronized int getDirectoryTimeOut() {
     return directoryTimeOut;
   }
 
-  public TimeUnit getDirectoryTimeoutUnit() {
+  public synchronized TimeUnit getDirectoryTimeoutUnit() {
     return directoryTimeoutUnit;
   }
-
 }

@@ -1,5 +1,6 @@
 package com.sacom.order.receiver.filesystem;
 
+import com.sacom.order.common.OrderDispatcher;
 import com.sacom.order.model.IncomingOrderDescription;
 import com.sacom.order.receiver.ReceiverException;
 
@@ -9,46 +10,44 @@ import java.util.concurrent.TimeUnit;
 
 class FileSystemWatcher implements Runnable {
   private FileSystemReceiverSettings settings;
+  private OrderDispatcher dispatcher;
+
   private WatchService watchService;
   private Path directory;
 
-  public FileSystemWatcher(FileSystemReceiverSettings _settings) throws ReceiverException {
+  public FileSystemWatcher(FileSystemReceiverSettings _settings, OrderDispatcher _dispatcher) throws ReceiverException {
     settings = _settings;
+    dispatcher = _dispatcher;
 
     constructAndStartUpWatcher();
-      // called here just because we cannot throw from the run method
+    // called here just because we cannot throw from the run method
   }
 
   @Override
   public void run() {
-    while( true ) {
+    while (true) {
       try {
         WatchKey key = watchService.poll(settings.getDirectoryTimeOut(), settings.getDirectoryTimeoutUnit());
         if (key != null) {
-          System.out.println( "====" );
           for (WatchEvent<?> event : key.pollEvents()) {
-            //final WatchEvent.Kind<?> typeOfEvent = event.kind();
-            //System.out.println( "Kind: " + typeOfEvent.name() + "  " + typeOfEvent.toString() );
-            //System.out.println( "Kind: " + typeOfEvent.name() + "  " + typeOfEvent.toString() );
-            //final String eventContextName = event.context().toString();
             Path fileNamePath = (Path) event.context();
-            //String fileNameAsString = fileName.toString();
-            IncomingOrderDescription orderDescription = new IncomingOrderDescription( directory ,
-                fileNamePath );
-            System.out.println( "Dir: " + directory.toAbsolutePath() );
-            System.out.println( "File: " + fileNamePath.toAbsolutePath() );
+            IncomingOrderDescription orderDescription = new IncomingOrderDescription(directory,
+                fileNamePath);
+            //System.out.println("Dir: " + directory.toAbsolutePath());
+            //System.out.println("File: " + fileNamePath.toAbsolutePath());
+            dispatcher.dispatch(orderDescription);
           }
           key.reset();
         } else {
           final TimeUnit tu = settings.getDirectoryTimeoutUnit();
-          final long millis = tu.toMillis( settings.getDirectoryTimeOut() );
+          final long millis = tu.toMillis(settings.getDirectoryTimeOut());
           Thread.sleep(millis);
         }
         if (Thread.interrupted()) {
           break;
         }
 
-      } catch( InterruptedException _ex ) {
+      } catch (InterruptedException _ex) {
         break;
       }
     }
@@ -61,16 +60,16 @@ class FileSystemWatcher implements Runnable {
       watchService = FileSystems.getDefault().newWatchService();
       directory = Paths.get(settings.getDirectory());
       WatchKey registrationKey = directory.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
-    } catch( IOException _ex ) {
-      throw new ReceiverException( "ERROR: starting watcher: " + _ex.getMessage() , _ex);
+    } catch (IOException _ex) {
+      throw new ReceiverException("ERROR: starting watcher: " + _ex.getMessage(), _ex);
     }
   }
 
   private void shutDownAndDisposeWatcher() {
-    if(watchService != null) {
+    if (watchService != null) {
       try {
         watchService.close();
-      } catch( IOException _ex ) {
+      } catch (IOException _ex) {
         // TODO: bury..
       } finally {
         watchService = null;

@@ -1,30 +1,36 @@
 package com.sacom.order.receiver.filesystem;
 
-import com.sacom.order.receiver.OrderReceiver;
+import com.sacom.order.common.LifeCycleException;
+import com.sacom.order.common.LifeCycle;
+import com.sacom.order.common.OrderDescription;
+import com.sacom.order.common.OrderDispatcher;
 import com.sacom.order.receiver.ReceiverException;
 
 /**
  * Monitors a directory on the filesystem, according to settings, for new 'incoming' order files.
  */
-public class FileSystemReceiver implements OrderReceiver {
+public class FileSystemReceiver implements LifeCycle {
   private FileSystemReceiverSettings settings;
-  private FileSystemWatcher watcher;
+  private OrderDispatcher dispatcher;
+
+  private FileSystemWatcher watcher; // TODO: member not needed
   private Thread watcherThread;
 
-  public FileSystemReceiver(FileSystemReceiverSettings _settings) {
+  public FileSystemReceiver(FileSystemReceiverSettings _settings, OrderDispatcher _dispatcher) {
     settings = _settings;
+    dispatcher = _dispatcher;
   }
 
   @Override
-  public void start() throws ReceiverException {
-    if(watcher == null && watcherThread == null) {
+  public void start() throws LifeCycleException {
+    if (watcher == null && watcherThread == null) {
       try {
-        watcher = new FileSystemWatcher( settings );
+        watcher = new FileSystemWatcher(settings, dispatcher);
         watcherThread = new Thread(watcher);
         watcherThread.start();
 
       } catch (ReceiverException _ex) {
-        throw new ReceiverException( "ERROR: canno start watcher thread" , _ex );
+        throw new LifeCycleException("File System Receiver: cannot start watcher thread", _ex);
       }
     } else {
       // already running
@@ -34,11 +40,11 @@ public class FileSystemReceiver implements OrderReceiver {
 
   @Override
   public void stop() {
-    if (watcher != null && watcherThread != null){
+    if (watcher != null && watcherThread != null) {
       watcherThread.interrupt();
       try {
         watcherThread.join();
-      } catch(InterruptedException _ex) {
+      } catch (InterruptedException _ex) {
         // nop
       } finally {
         watcherThread = null;
