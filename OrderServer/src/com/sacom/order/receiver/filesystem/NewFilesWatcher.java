@@ -50,13 +50,14 @@ class NewFilesWatcher implements Runnable {
                     OrderDescription orderDescription = new OrderDescription("receiver",
                         "directory", directory,
                         "file", fileNamePath,
-                        "order", orderNumber);
+                        "orderNumber", orderNumber);
                     //System.out.println("Dir: " + directory.toAbsolutePath());
                     //System.out.println("File: " + fileNamePath.toAbsolutePath());
                     dispatcher.dispatch(orderDescription);
 
                   } catch (Exception _ex) {
                     // TODO:
+                    _ex.printStackTrace();
                   }
                 }
               }

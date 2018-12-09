@@ -1,6 +1,7 @@
 package com.sacom.order.processing;
 
 import com.sacom.order.common.OrderDescription;
+import com.sacom.order.common.OrderDispatcher;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -22,12 +23,15 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class OrderHandler implements Runnable {
+  private OrderDispatcher dispatcher;
+
   private OrderDescription orderDescription;
   private DocumentBuilderFactory documentBuilderFactory;
 
   private HashMap<String, Document> outgoingOrdersMap;
 
-  OrderHandler(OrderDescription _orderDescription, DocumentBuilderFactory _documentBuilderFactory) {
+  OrderHandler(OrderDispatcher _dispatcher, OrderDescription _orderDescription, DocumentBuilderFactory _documentBuilderFactory) {
+    dispatcher = _dispatcher;
     orderDescription = _orderDescription;
     documentBuilderFactory = _documentBuilderFactory;
 
@@ -38,50 +42,25 @@ public class OrderHandler implements Runnable {
   public void run() {
     File file = readInputFile();
     if (file != null) {
-      DocumentBuilder documentBuilder = null;
-      try {
-        documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        // TODO: documentBuilder.setErrorHandler();
-      } catch (ParserConfigurationException _ex) {
-        // TODO:
-        //System.err.println("ERROR: initializing or parsing XML order: " + _ex.toString());
-        _ex.printStackTrace();
-      }
-
-      Document xmlDocument = null;
-      if (documentBuilder != null) {
-        try {
-          xmlDocument = documentBuilder.parse(file);
-          //xmlDocument.normalizeDocument();
-          xmlDocument.normalize();
-        } catch (SAXException e) {
-          // TODO:
-          e.printStackTrace();
-        } catch (IOException e) {
-          // TODO:
-          e.printStackTrace();
-        }
-      }
-
+      final Document xmlDocument = parseXmlDocument(file);
       if (xmlDocument != null) {
-        Element rootElem = xmlDocument.getDocumentElement();
-        NamedNodeMap attributeMap = rootElem.getAttributes();
-        for (int i = 0; i < attributeMap.getLength(); i++) {
-          Node n = attributeMap.item(i);
-          System.out.println(n.getNodeName());
-        }
-
-        NodeList orderNodes = rootElem.getElementsByTagName("order");
-        for (int i = 0; i < orderNodes.getLength(); i++) {
-          final Node orderNode = orderNodes.item(i);
-          handleOrderNode(orderNode);
-        }
+        processXmlDocument(xmlDocument);
       }
 
-      for(final String supplierName : outgoingOrdersMap.keySet()) {
-        System.out.println("-----");
-        Document outOrderXml = outgoingOrdersMap.get(supplierName);
+      for (final String supplierName : outgoingOrdersMap.keySet()) {
+        final Document outOrderXml = outgoingOrdersMap.get(supplierName);
+        final String outFileName = constructOutputFileName(supplierName);
+        System.out.println("----- " + outFileName);
         System.out.println(transformNodeToString(outOrderXml));
+        try {
+          final OrderDescription orderDescription = new OrderDescription("processing",
+              "fileName", outFileName,
+              "xmlDocument", outOrderXml);
+          dispatcher.dispatch(orderDescription);
+        } catch (Exception _ex) {
+          // TODO:
+          _ex.printStackTrace();
+        }
       }
 
     } else {
@@ -89,18 +68,70 @@ public class OrderHandler implements Runnable {
     }
   }
 
-  private File readInputFile() {
-    FileSystem fs = FileSystems.getDefault();
-    final Path directoryAsPath = (Path)orderDescription.item("directory");
-    final Path fileAsPath = (Path)orderDescription.item("file");
-    final String directoryAbsoutePath = directoryAsPath.toString();
-    final String fileName = fileAsPath.toString();
-    Path fileFullPathAndFileName = fs.getPath(directoryAbsoutePath, fileName);
-    File file = new File(fileFullPathAndFileName.toUri());
-    return file;
+  private DocumentBuilder getDocumentBuilder() {
+    DocumentBuilder documentBuilder = null;
+    try {
+      documentBuilder = documentBuilderFactory.newDocumentBuilder();
+      // TODO: documentBuilder.setErrorHandler();
+    } catch (ParserConfigurationException _ex) {
+      // nop
+      _ex.printStackTrace();
+    }
+    return documentBuilder;
   }
 
-  private void handleOrderNode(final Node _orderNode) {
+  private Document parseXmlDocument(File _file) {
+    DocumentBuilder documentBuilder = getDocumentBuilder();
+    if (documentBuilder != null) {
+      try {
+        Document xmlDocument = documentBuilder.parse(_file);
+        xmlDocument.normalize();
+        return  xmlDocument;
+
+      } catch (SAXException | IOException e) {
+        // TODO: treat error after setting validation schema
+        e.printStackTrace();
+      }
+    }
+    return null;
+  }
+
+  private File readInputFile() {
+    final FileSystem fs = FileSystems.getDefault();
+    final Path directoryAsPath = (Path) orderDescription.item("directory");
+    final Path fileAsPath = (Path) orderDescription.item("file");
+    final String directoryAbsolutePath = directoryAsPath.toString();
+    final String fileName = fileAsPath.toString();
+    final Path fileFullPathAndFileName = fs.getPath(directoryAbsolutePath, fileName);
+    File f = new File(fileFullPathAndFileName.toUri());
+    if (f.exists()) {
+      return f;
+    } else {
+      return null;
+    }
+  }
+
+  private String constructOutputFileName(String _supplierNode) {
+    StringBuilder sb = new StringBuilder(_supplierNode);
+    final String orderNumber = (String)orderDescription.item("orderNumber");
+    if (orderNumber == null) {
+      // TODO: error
+    }
+    sb.append(orderNumber);
+    sb.append(".xml");
+    return sb.toString();
+  }
+
+  private void processXmlDocument(Document _xmlDocument) {
+    Element rootElem = _xmlDocument.getDocumentElement();
+    NodeList orderNodes = rootElem.getElementsByTagName("order");
+    for (int i = 0; i < orderNodes.getLength(); i++) {
+      final Node orderNode = orderNodes.item(i);
+      processOrderNode(orderNode);
+    }
+  }
+
+  private void processOrderNode(final Node _orderNode) {
     final NamedNodeMap orderAttributes = _orderNode.getAttributes();
     final Node orderIdNode = orderAttributes.getNamedItem("ID");
     final String orderIdString = orderIdNode.getNodeValue();
@@ -109,7 +140,7 @@ public class OrderHandler implements Runnable {
     final NodeList productNodes = orderElement.getElementsByTagName("product");
     for (int i = 0; i < productNodes.getLength(); i++) {
       final Node productNode = productNodes.item(i);
-      handleProductNode(productNode, orderIdString);
+      processProductNode(productNode, orderIdString);
     }
   }
 
@@ -118,11 +149,11 @@ public class OrderHandler implements Runnable {
     final Element productElement = (Element) _productNode;
     final NodeList supplierNodes = productElement.getElementsByTagName("supplier");
     if (supplierNodes.getLength() != 1) {
-      // TODO: handle error
+      // TODO: handle error; this error should be
+      System.err.println("ERROR: more than one");
     }
     final Node supplierNode = supplierNodes.item(0);
-    final String supplier = supplierNode.getTextContent();
-    return supplier;
+    return supplierNode.getTextContent();
   }
 
   private void removeSupplierNode(final Node _productNode) {
@@ -136,7 +167,7 @@ public class OrderHandler implements Runnable {
     _productNode.removeChild(supplierNode);
   }
 
-  private void handleProductNode(final Node _productNode, final String orderId) {
+  private void processProductNode(final Node _productNode, final String orderId) {
     // extract supplier
     //
     final String supplierName = extractSupplierName(_productNode);
@@ -159,9 +190,6 @@ public class OrderHandler implements Runnable {
     newOrderIdNode.setTextContent(orderId);
     importedProductNode.appendChild(newOrderIdNode);
     newOrderIdNode.normalize();
-
-//    System.out.println("-----");
-//    System.out.println(transformNodeToString(importedProductNode));
   }
 
   private String transformNodeToString(final Node _node) {
@@ -179,8 +207,7 @@ public class OrderHandler implements Runnable {
       System.err.println("ERROR: transformer - transform: " + _ex.toString());
       _ex.printStackTrace();
     }
-    String xml = writer.toString();
-    return xml;
+    return writer.toString();
   }
 
   private Document getOrCreateOutgingOrder(final String _supplier) {
@@ -194,7 +221,7 @@ public class OrderHandler implements Runnable {
         _ex.printStackTrace();
       }
 
-      if( documentBuilder != null ) {
+      if (documentBuilder != null) {
         Document newDocument = documentBuilder.newDocument();
         Element rootElement = newDocument.createElement("products");
         newDocument.appendChild(rootElement);

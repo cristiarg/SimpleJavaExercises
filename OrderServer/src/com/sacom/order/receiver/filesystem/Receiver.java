@@ -38,9 +38,9 @@ public class Receiver implements LifeCycle {
   }
 
   @Override
-  public void stop() throws LifeCycleException {
+  public void stop() /*throws LifeCycleException*/ {
     if (newFilesWatcher != null && watcherThread != null) {
-      boolean overflowPresent = false;
+      boolean overflowPresent;
       watcherThread.interrupt();
       try {
         watcherThread.join();
@@ -53,6 +53,7 @@ public class Receiver implements LifeCycle {
       }
 
       if(overflowPresent) {
+        // TODO: better error/warning/info message reporting
         System.out.println("WARNING: overflow during file system monitoring");
       }
     }

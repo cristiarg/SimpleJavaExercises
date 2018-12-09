@@ -5,9 +5,8 @@ package com.sacom.order.common;
  */
 public interface OrderDispatcher {
   /**
-   * non-blocking, if possible
+   * to be implemented as-much-as-possible non-blocking
    *
-   * @param _orderDescription
    */
   void dispatch(OrderDescription _orderDescription);
 }

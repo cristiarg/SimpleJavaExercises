@@ -23,7 +23,7 @@ public class OrderHandlerTest {
     try {
       final OrderDescription orderDescription = new OrderDescription("receiver",
           "directory", dirPath, "file", fileName);
-      OrderHandler oh = new OrderHandler(orderDescription, documentBuilderFactory);
+      OrderHandler oh = new OrderHandler(null, orderDescription, documentBuilderFactory);
       oh.run();
     } catch (Exception _ex) {
       // nop

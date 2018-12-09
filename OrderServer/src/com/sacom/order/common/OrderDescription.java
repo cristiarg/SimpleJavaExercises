@@ -14,9 +14,11 @@ public class OrderDescription {
    * @param _nature         - a string that identifies the nature of the message; it should be considered
    *                        as part of the application protocol between a produce and a consumer
    * @param _nameValuePairs - names (as String) and values supplied as elements in a map
-   * @throws Exception
+   * @throws Exception - a message describing what is not right is the constructor's arguments
    */
   public OrderDescription(final String _nature, final Object... _nameValuePairs) throws Exception {
+    nature = _nature;
+
     final int count = _nameValuePairs.length;
     if (count % 2 != 0) {
       throw new Exception("An even number of variable arguments is expected. Found: " + count);
@@ -38,17 +40,14 @@ public class OrderDescription {
           throw new Exception("Name are expected to be non-empty.");
         }
       } else {
-        if (!isEven) {
-          nameValueMap.put(name, o);
-          name = "";
-        }
+        nameValueMap.put(name, o);
+        name = "";
       }
       ++i;
     }
   }
 
   /**
-   *
    * @return the 'nature' of this message; part of the application level protocol
    * between a producer and a consumer of messages
    */

@@ -4,6 +4,7 @@ import com.sacom.order.common.LifeCycleException;
 import com.sacom.order.dispatcher.DispatcherException;
 import com.sacom.order.dispatcher.filesystem.Dispatcher;
 import com.sacom.order.dispatcher.filesystem.DispatcherSettings;
+import com.sacom.order.processing.XMLOrderProcessing;
 import com.sacom.order.receiver.ReceiverException;
 import com.sacom.order.receiver.filesystem.Receiver;
 import com.sacom.order.common.LifeCycle;
@@ -39,19 +40,30 @@ public class Main {
     //
     Dispatcher orderDispatcher = null;
     if (dispatcherSettings != null) {
-      try {
+      //try {
         orderDispatcher = new Dispatcher(dispatcherSettings);
         orderDispatcher.start();
+      //} catch (LifeCycleException _ex) {
+      //  System.err.println("ERROR: cannot instantiate file system dispatcher: " + _ex.toString());
+      //  orderDispatcher = null;
+      //}
+    }
+
+    XMLOrderProcessing orderProcessing = null;
+    if(orderDispatcher != null) {
+      try {
+        orderProcessing = new XMLOrderProcessing(orderDispatcher);
+        orderProcessing.start();
       } catch (LifeCycleException _ex) {
-        System.err.println("ERROR: cannot instantiate file system dispatcher: " + _ex.toString());
-        orderDispatcher = null;
+        System.err.println("ERROR: cannot instantiate processing: " + _ex.toString());
+        orderProcessing = null;
       }
     }
 
     LifeCycle orderReceiver = null;
-    if (receiverSettings != null) {
+    if (receiverSettings != null && orderProcessing != null) {
       try {
-        orderReceiver = new Receiver(receiverSettings, orderDispatcher);
+        orderReceiver = new Receiver(receiverSettings, orderProcessing);
         orderReceiver.start();
       } catch (LifeCycleException _ex) {
         System.err.println("ERROR: cannot start order receiver: " + _ex.toString());
@@ -78,6 +90,16 @@ public class Main {
         System.err.println("ERROR: failed to stop the receiver: " + _ex.toString());
       } finally {
         orderReceiver = null;
+      }
+    }
+
+    if(orderProcessing != null) {
+      try {
+        orderProcessing.stop();
+      } catch(LifeCycleException _ex) {
+        System.err.println("ERROR: failed to stop the processing: " + _ex.toString());
+      } finally {
+        orderProcessing = null;
       }
     }
 

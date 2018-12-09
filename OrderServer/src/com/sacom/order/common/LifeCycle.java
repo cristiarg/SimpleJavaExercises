@@ -7,14 +7,14 @@ public interface LifeCycle {
   /**
    * non-blocking
    *
-   * @throws LifeCycleException
+   * @throws LifeCycleException - details why lifecycle cannot be started
    */
   void start() throws LifeCycleException;
 
   /**
    * blocking
    *
-   * @throws LifeCycleException
+   * @throws LifeCycleException - details why lifecycle cannot be stopped
    */
   void stop() throws LifeCycleException;
 }
