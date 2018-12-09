@@ -7,6 +7,8 @@ import com.sacom.order.receiver.ReceiverException;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * implements a watching loop that continuously polls
@@ -42,14 +44,20 @@ class NewFilesWatcher implements Runnable {
                 overflowDuringMonitoring = true;
               } else {
                 final Path fileNamePath = (Path) event.context();
-                try {
-                  OrderDescription orderDescription = new OrderDescription("receiver",
-                      "directory", directory, "file", fileNamePath);
-                  //System.out.println("Dir: " + directory.toAbsolutePath());
-                  //System.out.println("File: " + fileNamePath.toAbsolutePath());
-                  dispatcher.dispatch(orderDescription);
-                } catch(Exception _ex) {
-                  // TODO:
+                String orderNumber = extractOrderNumber(fileNamePath.toString());
+                if(orderNumber.length() > 0) {
+                  try {
+                    OrderDescription orderDescription = new OrderDescription("receiver",
+                        "directory", directory,
+                        "file", fileNamePath,
+                        "order", orderNumber);
+                    //System.out.println("Dir: " + directory.toAbsolutePath());
+                    //System.out.println("File: " + fileNamePath.toAbsolutePath());
+                    dispatcher.dispatch(orderDescription);
+
+                  } catch (Exception _ex) {
+                    // TODO:
+                  }
                 }
               }
             }
@@ -71,6 +79,18 @@ class NewFilesWatcher implements Runnable {
     } finally {
       shutDownAndDisposeWatcher();
     }
+  }
+
+  private String extractOrderNumber(String _fileName) {
+    Pattern regexPattern = settings.getRegexPattern();
+    Matcher regexMatcher = regexPattern.matcher(_fileName);
+    if(regexMatcher.matches()) {
+      String s = regexMatcher.group(1);
+      if (s.length() > 0) {
+        return s;
+      }
+    }
+    return "";
   }
 
   private void constructAndStartUpWatcher() throws ReceiverException {
