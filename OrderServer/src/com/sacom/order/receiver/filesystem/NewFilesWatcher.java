@@ -1,7 +1,7 @@
 package com.sacom.order.receiver.filesystem;
 
+import com.sacom.order.common.OrderDescription;
 import com.sacom.order.common.OrderDispatcher;
-import com.sacom.order.model.IncomingOrderDescription;
 import com.sacom.order.receiver.ReceiverException;
 
 import java.io.IOException;
@@ -42,10 +42,15 @@ class NewFilesWatcher implements Runnable {
                 overflowDuringMonitoring = true;
               } else {
                 final Path fileNamePath = (Path) event.context();
-                IncomingOrderDescription orderDescription = new IncomingOrderDescription(directory, fileNamePath);
-                //System.out.println("Dir: " + directory.toAbsolutePath());
-                //System.out.println("File: " + fileNamePath.toAbsolutePath());
-                dispatcher.dispatch(orderDescription);
+                try {
+                  OrderDescription orderDescription = new OrderDescription("receiver",
+                      "directory", directory, "file", fileNamePath);
+                  //System.out.println("Dir: " + directory.toAbsolutePath());
+                  //System.out.println("File: " + fileNamePath.toAbsolutePath());
+                  dispatcher.dispatch(orderDescription);
+                } catch(Exception _ex) {
+                  // TODO:
+                }
               }
             }
             key.reset();

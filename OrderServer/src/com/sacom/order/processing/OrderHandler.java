@@ -91,8 +91,10 @@ public class OrderHandler implements Runnable {
 
   private File readInputFile() {
     FileSystem fs = FileSystems.getDefault();
-    String directoryAbsoutePath = orderDescription.getDirectoryPath().toString();
-    String fileName = orderDescription.getFileName().toString();
+    final Path directoryAsPath = (Path)orderDescription.item("directory");
+    final Path fileAsPath = (Path)orderDescription.item("file");
+    final String directoryAbsoutePath = directoryAsPath.toString();
+    final String fileName = fileAsPath.toString();
     Path fileFullPathAndFileName = fs.getPath(directoryAbsoutePath, fileName);
     File file = new File(fileFullPathAndFileName.toUri());
     return file;

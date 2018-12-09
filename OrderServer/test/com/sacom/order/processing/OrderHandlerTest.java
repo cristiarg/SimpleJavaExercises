@@ -1,7 +1,6 @@
 package com.sacom.order.processing;
 
 import com.sacom.order.common.OrderDescription;
-import com.sacom.order.model.IncomingOrderDescription;
 import org.junit.Test;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,10 +20,13 @@ public class OrderHandlerTest {
 
     Path dirPath = Paths.get("C:\\_test");
     Path fileName = Paths.get("order01.xml");
-    final OrderDescription orderDescription = new IncomingOrderDescription(dirPath, fileName);
-
-    OrderHandler oh = new OrderHandler(orderDescription, documentBuilderFactory);
-    oh.run();
-
+    try {
+      final OrderDescription orderDescription = new OrderDescription("receiver",
+          "directory", dirPath, "file", fileName);
+      OrderHandler oh = new OrderHandler(orderDescription, documentBuilderFactory);
+      oh.run();
+    } catch (Exception _ex) {
+      // nop
+    }
   }
 }

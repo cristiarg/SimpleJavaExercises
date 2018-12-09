@@ -18,8 +18,10 @@ class OrderHandler implements Runnable {
   public void run() {
     FileSystem fs = FileSystems.getDefault();
 
-    String oldDirectoryAbsoutePath = orderDescription.getDirectoryPath().toString();
-    String fileName = orderDescription.getFileName().toString();
+    final Path directoryAsPath = (Path)orderDescription.item("directory");
+    final Path fileAsPath = (Path)orderDescription.item("file");
+    final String oldDirectoryAbsoutePath = directoryAsPath.toString();
+    final String fileName = fileAsPath.toString();
 
     Path oldFileAbsolutePathAndName = fs.getPath(oldDirectoryAbsoutePath, fileName);
     Path newFileAbsolutePathAndName = fs.getPath(settings.getDirectory(), fileName);
