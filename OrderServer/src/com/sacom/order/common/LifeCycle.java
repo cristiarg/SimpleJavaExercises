@@ -13,6 +13,8 @@ public interface LifeCycle {
 
   /**
    * blocking
+   *
+   * @throws LifeCycleException
    */
   void stop() throws LifeCycleException;
 }

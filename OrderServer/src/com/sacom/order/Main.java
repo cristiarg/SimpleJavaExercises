@@ -2,12 +2,12 @@ package com.sacom.order;
 
 import com.sacom.order.common.LifeCycleException;
 import com.sacom.order.dispatcher.DispatcherException;
-import com.sacom.order.dispatcher.filesystem.FileSystemDispatcher;
-import com.sacom.order.dispatcher.filesystem.FileSystemDispatcherSettings;
+import com.sacom.order.dispatcher.filesystem.Dispatcher;
+import com.sacom.order.dispatcher.filesystem.DispatcherSettings;
 import com.sacom.order.receiver.ReceiverException;
-import com.sacom.order.receiver.filesystem.FileSystemReceiver;
+import com.sacom.order.receiver.filesystem.Receiver;
 import com.sacom.order.common.LifeCycle;
-import com.sacom.order.receiver.filesystem.FileSystemReceiverSettings;
+import com.sacom.order.receiver.filesystem.ReceiverSettings;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -17,17 +17,17 @@ public class Main {
     //
     // construct settings
     //
-    FileSystemDispatcherSettings dispatcherSettings = null;
+    DispatcherSettings dispatcherSettings = null;
     try {
-      dispatcherSettings = new FileSystemDispatcherSettings("C:\\_o", 10);
+      dispatcherSettings = new DispatcherSettings("C:\\_o", 10);
     } catch (DispatcherException _ex) {
       System.err.println("ERROR: cannot instantiate file system dispatcher settings: " + _ex.toString());
       dispatcherSettings = null;
     }
 
-    FileSystemReceiverSettings receiverSettings = null;
+    ReceiverSettings receiverSettings = null;
     try {
-      receiverSettings = new FileSystemReceiverSettings(
+      receiverSettings = new ReceiverSettings(
           "C:\\_i", 100, TimeUnit.MILLISECONDS);
     } catch (ReceiverException _ex) {
       System.err.println("ERROR: cannot instantiate file system receiver: " + _ex.toString());
@@ -37,10 +37,10 @@ public class Main {
     //
     // construct the pipeline backwards
     //
-    FileSystemDispatcher orderDispatcher = null;
+    Dispatcher orderDispatcher = null;
     if (dispatcherSettings != null) {
       try {
-        orderDispatcher = new FileSystemDispatcher(dispatcherSettings);
+        orderDispatcher = new Dispatcher(dispatcherSettings);
         orderDispatcher.start();
       } catch (LifeCycleException _ex) {
         System.err.println("ERROR: cannot instantiate file system dispatcher: " + _ex.toString());
@@ -51,7 +51,7 @@ public class Main {
     LifeCycle orderReceiver = null;
     if (receiverSettings != null) {
       try {
-        orderReceiver = new FileSystemReceiver(receiverSettings, orderDispatcher);
+        orderReceiver = new Receiver(receiverSettings, orderDispatcher);
         orderReceiver.start();
       } catch (LifeCycleException _ex) {
         System.err.println("ERROR: cannot start order receiver: " + _ex.toString());

@@ -5,13 +5,13 @@ import com.sacom.order.receiver.ReceiverException;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public class FileSystemReceiverSettings {
+public class ReceiverSettings {
   private String directory;
   private int directoryTimeOut;
   private TimeUnit directoryTimeoutUnit;
 
-  public FileSystemReceiverSettings(String _directory, int _directoryTimeOut,
-                                    TimeUnit _directoryTimeoutUnit) throws ReceiverException {
+  public ReceiverSettings(String _directory, int _directoryTimeOut,
+                          TimeUnit _directoryTimeoutUnit) throws ReceiverException {
     directory = _directory;
     directoryTimeOut = _directoryTimeOut;
     directoryTimeoutUnit = _directoryTimeoutUnit;
@@ -38,15 +38,15 @@ public class FileSystemReceiverSettings {
     }
   }
 
-  public synchronized String getDirectory() {
+  synchronized String getDirectory() {
     return directory;
   }
 
-  public synchronized int getDirectoryTimeOut() {
+  synchronized int getDirectoryTimeOut() {
     return directoryTimeOut;
   }
 
-  public synchronized TimeUnit getDirectoryTimeoutUnit() {
+  synchronized TimeUnit getDirectoryTimeoutUnit() {
     return directoryTimeoutUnit;
   }
 }

@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.nio.file.*;
 
 class OrderHandler implements Runnable {
-  FileSystemDispatcherSettings settings;
+  DispatcherSettings settings;
   OrderDescription orderDescription;
 
-  OrderHandler(FileSystemDispatcherSettings _settings, OrderDescription _orderDescription) {
+  OrderHandler(DispatcherSettings _settings, OrderDescription _orderDescription) {
     settings = _settings;
     orderDescription = _orderDescription;
   }

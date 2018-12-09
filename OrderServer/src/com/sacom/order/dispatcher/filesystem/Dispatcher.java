@@ -4,36 +4,33 @@ import com.sacom.order.common.LifeCycle;
 import com.sacom.order.common.LifeCycleException;
 import com.sacom.order.common.OrderDescription;
 import com.sacom.order.common.OrderDispatcher;
-import com.sacom.order.dispatcher.DispatcherException;
 
-import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class FileSystemDispatcher implements LifeCycle, OrderDispatcher {
-  private ExecutorService executor;
+public class Dispatcher implements LifeCycle, OrderDispatcher {
+  private ExecutorService executor; // TODO: extract some utility of this for use in here and in receiver
 
-  FileSystemDispatcherSettings settings;
+  DispatcherSettings settings;
 
-  public FileSystemDispatcher(FileSystemDispatcherSettings _settings) {
+  public Dispatcher(DispatcherSettings _settings) {
     settings = _settings;
   }
 
   @Override
-  public void start() throws LifeCycleException {
+  public synchronized void start() throws LifeCycleException {
     if (executor == null) {
-       executor = Executors.newWorkStealingPool();
+      executor = Executors.newWorkStealingPool();
     }
   }
 
   @Override
-  public void stop() throws LifeCycleException {
+  public synchronized void stop() throws LifeCycleException {
     if (executor != null) {
       try {
-        executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
         executor.shutdown();
+        executor.awaitTermination(10, TimeUnit.SECONDS); // TODO: configurable
         if(executor.isShutdown()) {
           executor = null;
         } else {
@@ -46,7 +43,7 @@ public class FileSystemDispatcher implements LifeCycle, OrderDispatcher {
   }
 
   @Override
-  public void dispatch(OrderDescription _orderDescription) {
+  public synchronized void dispatch(OrderDescription _orderDescription) {
     if (executor != null) {
       // TODO: not interested in the result, for now
       // TODO: get the future instance, add it to a waiting queue, dispatch another thread to

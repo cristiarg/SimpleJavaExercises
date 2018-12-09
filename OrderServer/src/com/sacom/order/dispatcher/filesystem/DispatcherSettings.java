@@ -5,11 +5,11 @@ import com.sacom.order.dispatcher.DispatcherException;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public class FileSystemDispatcherSettings {
+public class DispatcherSettings {
   private String directory;
   private int tryCount;
 
-  public FileSystemDispatcherSettings(String _directory, int _tryCount) throws DispatcherException {
+  public DispatcherSettings(String _directory, int _tryCount) throws DispatcherException {
     directory = _directory;
     tryCount = _tryCount;
 
@@ -34,11 +34,11 @@ public class FileSystemDispatcherSettings {
     }
   }
 
-  public synchronized String getDirectory() {
+  synchronized String getDirectory() {
     return directory;
   }
 
-  public synchronized int getTryCount() {
+  synchronized int getTryCount() {
     return tryCount;
   }
 }

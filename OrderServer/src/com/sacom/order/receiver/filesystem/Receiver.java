@@ -2,35 +2,34 @@ package com.sacom.order.receiver.filesystem;
 
 import com.sacom.order.common.LifeCycleException;
 import com.sacom.order.common.LifeCycle;
-import com.sacom.order.common.OrderDescription;
 import com.sacom.order.common.OrderDispatcher;
 import com.sacom.order.receiver.ReceiverException;
 
 /**
  * Monitors a directory on the filesystem, according to settings, for new 'incoming' order files.
  */
-public class FileSystemReceiver implements LifeCycle {
-  private FileSystemReceiverSettings settings;
+public class Receiver implements LifeCycle {
+  private ReceiverSettings settings;
   private OrderDispatcher dispatcher;
 
-  private FileSystemWatcher watcher; // TODO: member not needed
+  private NewFilesWatcher newFilesWatcher;
   private Thread watcherThread;
 
-  public FileSystemReceiver(FileSystemReceiverSettings _settings, OrderDispatcher _dispatcher) {
+  public Receiver(ReceiverSettings _settings, OrderDispatcher _dispatcher) {
     settings = _settings;
     dispatcher = _dispatcher;
   }
 
   @Override
   public void start() throws LifeCycleException {
-    if (watcher == null && watcherThread == null) {
+    if (newFilesWatcher == null && watcherThread == null) {
       try {
-        watcher = new FileSystemWatcher(settings, dispatcher);
-        watcherThread = new Thread(watcher);
+        newFilesWatcher = new NewFilesWatcher(settings, dispatcher);
+        watcherThread = new Thread(newFilesWatcher);
         watcherThread.start();
 
       } catch (ReceiverException _ex) {
-        throw new LifeCycleException("File System Receiver: cannot start watcher thread", _ex);
+        throw new LifeCycleException("File System Receiver: cannot start newFilesWatcher thread", _ex);
       }
     } else {
       // already running
@@ -39,8 +38,9 @@ public class FileSystemReceiver implements LifeCycle {
   }
 
   @Override
-  public void stop() {
-    if (watcher != null && watcherThread != null) {
+  public void stop() throws LifeCycleException {
+    if (newFilesWatcher != null && watcherThread != null) {
+      boolean overflowPresent = false;
       watcherThread.interrupt();
       try {
         watcherThread.join();
@@ -48,7 +48,12 @@ public class FileSystemReceiver implements LifeCycle {
         // nop
       } finally {
         watcherThread = null;
-        watcher = null;
+        overflowPresent = newFilesWatcher.isOverflowDuringMonitoring();
+        newFilesWatcher = null;
+      }
+
+      if(overflowPresent) {
+        System.out.println("WARNING: overflow during file system monitoring");
       }
     }
   }
