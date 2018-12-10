@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="xsd">
+    <output-path>$PROJECT_DIR$/out/artifacts</output-path>
+    <root id="root">
+      <element id="file-copy" path="$PROJECT_DIR$/orders.xsd" />
+    </root>
+  </artifact>
+</component>
