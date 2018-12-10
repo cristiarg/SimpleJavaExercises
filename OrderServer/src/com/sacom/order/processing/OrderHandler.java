@@ -21,6 +21,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 public class OrderHandler implements Runnable {
   private OrderDispatcher dispatcher;
@@ -50,16 +53,15 @@ public class OrderHandler implements Runnable {
       for (final String supplierName : outgoingOrdersMap.keySet()) {
         final Document outOrderXml = outgoingOrdersMap.get(supplierName);
         final String outFileName = constructOutputFileName(supplierName);
-        System.out.println("----- " + outFileName);
-        System.out.println(transformNodeToString(outOrderXml));
+        //System.out.println("----- " + outFileName);
+        //System.out.println(transformNodeToString(outOrderXml));
         try {
           final OrderDescription orderDescription = new OrderDescription("processing",
               "fileName", outFileName,
               "xmlDocument", outOrderXml);
           dispatcher.dispatch(orderDescription);
         } catch (Exception _ex) {
-          // TODO:
-          _ex.printStackTrace();
+          System.err.println("ERROR: order cannot be instantiated: " + _ex.toString());
         }
       }
 
@@ -72,10 +74,10 @@ public class OrderHandler implements Runnable {
     DocumentBuilder documentBuilder = null;
     try {
       documentBuilder = documentBuilderFactory.newDocumentBuilder();
-      // TODO: documentBuilder.setErrorHandler();
+      // TODO:
+      documentBuilder.setErrorHandler(null);
     } catch (ParserConfigurationException _ex) {
       // nop
-      _ex.printStackTrace();
     }
     return documentBuilder;
   }
@@ -84,13 +86,20 @@ public class OrderHandler implements Runnable {
     DocumentBuilder documentBuilder = getDocumentBuilder();
     if (documentBuilder != null) {
       try {
+        // validation
+        final boolean b = documentBuilder.isValidating();
+        final Schema s = documentBuilder.getSchema();
+        final Validator v = s.newValidator();
+        v.validate(new StreamSource(_file));
+
+        // parsing
         Document xmlDocument = documentBuilder.parse(_file);
         xmlDocument.normalize();
         return  xmlDocument;
 
-      } catch (SAXException | IOException e) {
-        // TODO: treat error after setting validation schema
-        e.printStackTrace();
+      } catch (SAXException | IOException _ex) {
+        System.err.println("ERROR: validating & parsing input XML document: " + _ex.toString());
+        // TODO: after an XML is not validated, apparently it is not possible to delete it until the application is closed
       }
     }
     return null;
@@ -115,7 +124,7 @@ public class OrderHandler implements Runnable {
     StringBuilder sb = new StringBuilder(_supplierNode);
     final String orderNumber = (String)orderDescription.item("orderNumber");
     if (orderNumber == null) {
-      // TODO: error
+      System.err.println("ERROR: 'orderNumber' expected in order description");
     }
     sb.append(orderNumber);
     sb.append(".xml");
@@ -149,8 +158,7 @@ public class OrderHandler implements Runnable {
     final Element productElement = (Element) _productNode;
     final NodeList supplierNodes = productElement.getElementsByTagName("supplier");
     if (supplierNodes.getLength() != 1) {
-      // TODO: handle error; this error should be
-      System.err.println("ERROR: more than one");
+      System.err.println("ERROR: more than one 'supplier' nodes found");
     }
     final Node supplierNode = supplierNodes.item(0);
     return supplierNode.getTextContent();
@@ -161,7 +169,7 @@ public class OrderHandler implements Runnable {
     final Element productElement = (Element) _productNode;
     final NodeList supplierNodes = productElement.getElementsByTagName("supplier");
     if (supplierNodes.getLength() != 1) {
-      // TODO: handle error
+      System.err.println("ERROR: more than one 'supplier' nodes found");
     }
     final Node supplierNode = supplierNodes.item(0);
     _productNode.removeChild(supplierNode);
@@ -174,7 +182,7 @@ public class OrderHandler implements Runnable {
 
     // obtain a destination xml document
     //
-    final Document outXmlDocument = getOrCreateOutgingOrder(supplierName);
+    final Document outXmlDocument = getOrCreateOutgoingOrder(supplierName);
     final Element outRootElement = outXmlDocument.getDocumentElement();
 
     // import the product node into the new document
@@ -210,15 +218,13 @@ public class OrderHandler implements Runnable {
     return writer.toString();
   }
 
-  private Document getOrCreateOutgingOrder(final String _supplier) {
+  private Document getOrCreateOutgoingOrder(final String _supplier) {
     if (!outgoingOrdersMap.containsKey(_supplier)) {
       DocumentBuilder documentBuilder = null;
       try {
         documentBuilder = documentBuilderFactory.newDocumentBuilder();
       } catch (ParserConfigurationException _ex) {
-        //System.err.println("ERROR: initializing or parsing XML order: " + _ex.toString());
-        // TODO:
-        _ex.printStackTrace();
+        System.err.println("ERROR: cannot construct document builder: " + _ex.toString());
       }
 
       if (documentBuilder != null) {

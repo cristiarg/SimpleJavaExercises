@@ -10,9 +10,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class Dispatcher implements LifeCycle, OrderDispatcher {
-  private ExecutorService executor; // TODO: extract some utility of this for use in here and in receiver
-
   private DispatcherSettings settings;
+
+  private ExecutorService executor; // TODO: extract some utility of this for use in here and in receiver
 
   public Dispatcher(DispatcherSettings _settings) {
     settings = _settings;
@@ -21,13 +21,19 @@ public class Dispatcher implements LifeCycle, OrderDispatcher {
   @Override
   public synchronized void start() /*throws LifeCycleException*/ {
     if (executor == null) {
+      logStatusBeforeStart();
+
       executor = Executors.newWorkStealingPool();
+
+      logStatusAfterStart();
     }
   }
 
   @Override
   public synchronized void stop() throws LifeCycleException {
     if (executor != null) {
+      logStatusBeforeStop();
+
       try {
         executor.shutdown();
         executor.awaitTermination(10, TimeUnit.SECONDS); // TODO: configurable
@@ -39,8 +45,31 @@ public class Dispatcher implements LifeCycle, OrderDispatcher {
       } catch(InterruptedException _ex) {
         throw new LifeCycleException("File System Dispatcher: termination failed", _ex);
       }
+
+      logStatusAfterStop();
     }
   }
+
+  private void logStatusBeforeStart() {
+    System.out.println("INFO: File System Dispatcher:");
+    System.out.println("      starting..");
+  }
+
+  private void logStatusAfterStart() {
+    System.out.println("INFO: File System Dispatcher:");
+    System.out.println("      saving processed order XML files into '" + settings.getDirectory() + "'");
+  }
+
+  private void logStatusBeforeStop() {
+    System.out.println("INFO: File System Dispatcher:");
+    System.out.println("      stopping..");
+  }
+
+  private void logStatusAfterStop() {
+    System.out.println("INFO: File System Dispatcher:");
+    System.out.println("      stopped");
+  }
+
 
   @Override
   public synchronized void dispatch(OrderDescription _orderDescription) {

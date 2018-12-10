@@ -4,27 +4,39 @@ import com.sacom.order.common.LifeCycle;
 import com.sacom.order.common.LifeCycleException;
 import com.sacom.order.common.OrderDescription;
 import com.sacom.order.common.OrderDispatcher;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class XMLOrderProcessing implements LifeCycle, OrderDispatcher {
+  private ProcessingSettings settings;
+
   private OrderDispatcher dispatcher;
 
   private ExecutorService executor;
 
   private DocumentBuilderFactory documentBuilderFactory;
 
-  public XMLOrderProcessing(OrderDispatcher _dispatcher) {
+  public XMLOrderProcessing(final ProcessingSettings _processingSettings, OrderDispatcher _dispatcher) {
+    settings = _processingSettings;
     dispatcher = _dispatcher;
   }
 
   @Override
   public synchronized void start() throws LifeCycleException {
+    logStatusBeforeStart();
+
     startExecutor();
-    initializeXMLObects();
+    initializeXMLFactory();
+
+    logStatusAfterStart();
   }
 
   private void startExecutor() {
@@ -33,18 +45,43 @@ public class XMLOrderProcessing implements LifeCycle, OrderDispatcher {
     }
   }
 
-  private void initializeXMLObects() throws  LifeCycleException{
+  private void initializeXMLFactory() throws  LifeCycleException{
     if (documentBuilderFactory == null) {
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        // TODO: documentBuilderFactory.setSchema();
-        documentBuilderFactory.setIgnoringComments(true);
-        documentBuilderFactory.setValidating(true);
+      documentBuilderFactory = DocumentBuilderFactory.newInstance();
+
+      File file = new File(settings.getXsdSchemaFileName()); // "orders.xsd"
+      if(!file.exists()) {
+        final String absolutePath = file.getAbsolutePath();
+        System.err.println("ERROR: schema file '" + settings.getXsdSchemaFileName() + "' was not found (" +  absolutePath + ")");
+        file = null;
+      }
+
+      if (file != null) {
+        final SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        Schema schema = null;
+        try {
+          schema = schemaFactory.newSchema(file);
+        } catch (SAXException e) {
+          e.printStackTrace();
+        }
+
+        if (schema != null) {
+          documentBuilderFactory.setSchema(schema);
+          documentBuilderFactory.setValidating(true);
+        }
+      }
+
+      documentBuilderFactory.setIgnoringComments(true);
+
+      documentBuilderFactory.setIgnoringElementContentWhitespace(true);
     }
   }
 
   @Override
   public synchronized void stop() throws LifeCycleException {
     if (executor != null) {
+      logStatusBeforeStop();
+
       try {
         executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
         executor.shutdown();
@@ -56,7 +93,29 @@ public class XMLOrderProcessing implements LifeCycle, OrderDispatcher {
       } catch (InterruptedException _ex) {
         throw new LifeCycleException("XML Order Processing: termination failed", _ex);
       }
+
+      logStatusAfterStop();
     }
+  }
+
+  private void logStatusBeforeStart() {
+    System.out.println("INFO: XML Order Processing:");
+    System.out.println("      starting..");
+  }
+
+  private void logStatusAfterStart() {
+    System.out.println("INFO: XML Order Processing:");
+    System.out.println("      started");
+  }
+
+  private void logStatusBeforeStop() {
+    System.out.println("INFO: XML Order Processing:");
+    System.out.println("      stopping..");
+  }
+
+  private void logStatusAfterStop() {
+    System.out.println("INFO: XML Order Processing:");
+    System.out.println("      stopped");
   }
 
   @Override

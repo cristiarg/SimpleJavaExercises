@@ -4,6 +4,7 @@ import com.sacom.order.common.LifeCycleException;
 import com.sacom.order.dispatcher.DispatcherException;
 import com.sacom.order.dispatcher.filesystem.Dispatcher;
 import com.sacom.order.dispatcher.filesystem.DispatcherSettings;
+import com.sacom.order.processing.ProcessingSettings;
 import com.sacom.order.processing.XMLOrderProcessing;
 import com.sacom.order.receiver.ReceiverException;
 import com.sacom.order.receiver.filesystem.Receiver;
@@ -15,9 +16,20 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
   public static void main(String[] args) {
+    System.out.println("working dir = " + System.getProperty("user.dir"));
     //
     // construct settings
     //
+    ReceiverSettings receiverSettings = null;
+    try {
+      receiverSettings = new ReceiverSettings(
+          "C:\\_i", 100, TimeUnit.MILLISECONDS);
+    } catch (ReceiverException _ex) {
+      System.err.println("ERROR: cannot instantiate file system receiver: " + _ex.toString());
+    }
+
+    final ProcessingSettings processingSettings = new ProcessingSettings("orders.xsd", true);
+
     DispatcherSettings dispatcherSettings = null;
     try {
       dispatcherSettings = new DispatcherSettings("C:\\_o", 10);
@@ -26,33 +38,19 @@ public class Main {
       dispatcherSettings = null;
     }
 
-    ReceiverSettings receiverSettings = null;
-    try {
-      receiverSettings = new ReceiverSettings(
-          "C:\\_i", 100, TimeUnit.MILLISECONDS);
-    } catch (ReceiverException _ex) {
-      System.err.println("ERROR: cannot instantiate file system receiver: " + _ex.toString());
-      receiverSettings = null;
-    }
-
     //
     // construct the pipeline backwards
     //
     Dispatcher orderDispatcher = null;
     if (dispatcherSettings != null) {
-      //try {
-        orderDispatcher = new Dispatcher(dispatcherSettings);
-        orderDispatcher.start();
-      //} catch (LifeCycleException _ex) {
-      //  System.err.println("ERROR: cannot instantiate file system dispatcher: " + _ex.toString());
-      //  orderDispatcher = null;
-      //}
+      orderDispatcher = new Dispatcher(dispatcherSettings);
+      orderDispatcher.start();
     }
 
     XMLOrderProcessing orderProcessing = null;
     if(orderDispatcher != null) {
       try {
-        orderProcessing = new XMLOrderProcessing(orderDispatcher);
+        orderProcessing = new XMLOrderProcessing(processingSettings, orderDispatcher);
         orderProcessing.start();
       } catch (LifeCycleException _ex) {
         System.err.println("ERROR: cannot instantiate processing: " + _ex.toString());
@@ -75,6 +73,7 @@ public class Main {
     // TODO: rudimentary wait for execution
     //
     try {
+      System.out.println("Monitoring/Processing/Dispatching loop running. Hit 'Return' to stop..");
       System.in.read();
     } catch (IOException _ex) {
       // nop

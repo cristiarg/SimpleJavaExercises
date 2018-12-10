@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="description" type="xs:string"/>
+  <xs:element name="gtin" type="xs:long"/>
+  <xs:element name="price">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:float">
+          <xs:attribute type="xs:string" name="currency" use="optional"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="supplier" type="xs:string"/>
+  <xs:element name="product">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="description"/>
+        <xs:element ref="gtin"/>
+        <xs:element ref="price"/>
+        <xs:element ref="supplier"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="order">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="product" maxOccurs="unbounded" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute type="xs:dateTime" name="created" use="optional"/>
+      <xs:attribute type="xs:short" name="ID" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="orders">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="order" maxOccurs="unbounded" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
