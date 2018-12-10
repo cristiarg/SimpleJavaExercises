@@ -20,6 +20,7 @@ The implementation in `com\sacom\order\processing` uses a thread pool to which i
  TODO
 
 ## Pipeline communication
+TODO
 
 ## TODO's
 - **Everywhere**: appropriate error reporting from the asynchronously executing entities
