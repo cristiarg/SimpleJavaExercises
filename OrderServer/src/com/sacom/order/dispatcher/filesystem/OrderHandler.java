@@ -22,18 +22,17 @@ class OrderHandler implements Runnable {
   public void run() {
     final Object fileNameAsObject = orderDescription.item("fileName");
     final Object xmlDocumentAsObject = orderDescription.item("xmlDocument");
-    if(fileNameAsObject != null && xmlDocumentAsObject != null) {
+    final boolean fileOk = fileNameAsObject instanceof String;
+    final boolean xmlDocumentOk = xmlDocumentAsObject instanceof Document;
+    if(fileOk && xmlDocumentOk) {
       String fileName = (String)fileNameAsObject;
       Document xmlDocument = (Document)xmlDocumentAsObject;
-      if(fileName != null && xmlDocument != null) {
-        FileSystem fs = FileSystems.getDefault();
-        Path newAbsolutePathAndName = fs.getPath(settings.getDirectory(), fileName);
-        File newFile = new File(newAbsolutePathAndName.toString());
 
-        writeXmlDocumentToFileSystem(xmlDocument, newFile);
-      } else {
-        // TODO:
-      }
+      FileSystem fs = FileSystems.getDefault();
+      Path newAbsolutePathAndName = fs.getPath(settings.getDirectory(), fileName);
+      File newFile = new File(newAbsolutePathAndName.toString());
+
+      writeXmlDocumentToFileSystem(xmlDocument, newFile);
     } else {
       // TODO:
     }

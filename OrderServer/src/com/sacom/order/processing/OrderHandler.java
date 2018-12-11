@@ -7,20 +7,14 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.UUID;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
@@ -105,16 +99,46 @@ public class OrderHandler implements Runnable {
     return null;
   }
 
+  private File renameFileToEnsureAccess(final FileSystem _fs, final String _directoryAbsolutePath,
+                                        final File _currentFile, final String _fileName) {
+    final String uuid = UUID.randomUUID().toString();
+    final Path newFileFullPathAndName = _fs.getPath(_directoryAbsolutePath, uuid + _fileName);
+    final File newFile = new File(newFileFullPathAndName.toUri());
+    int tryCount = 20; // TODO: from settings
+    int tryDelayMilli = 100;
+    while(tryCount > 0) {
+      final boolean res = _currentFile.renameTo(newFile);
+      if (res) {
+        return newFile;
+      } else {
+        --tryCount;
+        try {
+          Thread.sleep(tryDelayMilli);
+        } catch (InterruptedException e) {
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
   private File readInputFile() {
     final FileSystem fs = FileSystems.getDefault();
+
     final Path directoryAsPath = (Path) orderDescription.item("directory");
     final Path fileAsPath = (Path) orderDescription.item("file");
+
     final String directoryAbsolutePath = directoryAsPath.toString();
     final String fileName = fileAsPath.toString();
     final Path fileFullPathAndFileName = fs.getPath(directoryAbsolutePath, fileName);
     File f = new File(fileFullPathAndFileName.toUri());
     if (f.exists()) {
-      return f;
+      // rename the file such that it's sure we have full access to it
+      // it might happen that, for large files, writing is not over yet and it will
+      // blow up a little later upon access anyway
+      // TODO: this is a workaround and a better solution is needed
+      return renameFileToEnsureAccess(fs, directoryAbsolutePath, f, fileName);
+
     } else {
       return null;
     }
@@ -200,23 +224,23 @@ public class OrderHandler implements Runnable {
     newOrderIdNode.normalize();
   }
 
-  private String transformNodeToString(final Node _node) {
-    StringWriter writer = new StringWriter();
-    Transformer transformer = null;
-    try {
-      transformer = TransformerFactory.newInstance().newTransformer();
-    } catch (TransformerConfigurationException _ex) {
-      System.err.println("ERROR: transformer factory - new transformer: " + _ex.toString());
-      _ex.printStackTrace();
-    }
-    try {
-      transformer.transform(new DOMSource(_node), new StreamResult(writer));
-    } catch (TransformerException _ex) {
-      System.err.println("ERROR: transformer - transform: " + _ex.toString());
-      _ex.printStackTrace();
-    }
-    return writer.toString();
-  }
+  //private String transformNodeToString(final Node _node) {
+  //  StringWriter writer = new StringWriter();
+  //  Transformer transformer = null;
+  //  try {
+  //    transformer = TransformerFactory.newInstance().newTransformer();
+  //  } catch (TransformerConfigurationException _ex) {
+  //    System.err.println("ERROR: transformer factory - new transformer: " + _ex.toString());
+  //    _ex.printStackTrace();
+  //  }
+  //  try {
+  //    transformer.transform(new DOMSource(_node), new StreamResult(writer));
+  //  } catch (TransformerException _ex) {
+  //    System.err.println("ERROR: transformer - transform: " + _ex.toString());
+  //    _ex.printStackTrace();
+  //  }
+  //  return writer.toString();
+  //}
 
   private Document getOrCreateOutgoingOrder(final String _supplier) {
     if (!outgoingOrdersMap.containsKey(_supplier)) {
