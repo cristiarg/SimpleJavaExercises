@@ -5,13 +5,8 @@ import com.sacom.order.common.OrderDispatcher;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.io.*;
 import java.util.HashMap;
-import java.util.UUID;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,26 +32,40 @@ public class OrderHandler implements Runnable {
 
   @Override
   public void run() {
-    File file = readInputFile();
-    if (file != null) {
-      final Document xmlDocument = parseXmlDocument(file);
-      if (xmlDocument != null) {
-        processXmlDocument(xmlDocument);
-      }
-
-      for (final String supplierName : outgoingOrdersMap.keySet()) {
-        final Document outOrderXml = outgoingOrdersMap.get(supplierName);
-        final String outFileName = constructOutputFileName(supplierName);
-        //System.out.println("----- " + outFileName);
-        //System.out.println(transformNodeToString(outOrderXml));
+    OrderFileUtil fileUtil = new OrderFileUtil(orderDescription);
+    if(fileUtil.renameToTemporary()) {
+      final DocumentBuilder documentBuilder = getDocumentBuilder();
+      if (validateInputXmlDocument(documentBuilder, fileUtil.getRenamedFile())) {
+        final Document xmlDocument = parseXmlDocument(documentBuilder, fileUtil.getRenamedFile());
         try {
-          final OrderDescription orderDescription = new OrderDescription("processing",
-              "fileName", outFileName,
-              "xmlDocument", outOrderXml);
-          dispatcher.dispatch(orderDescription);
-        } catch (Exception _ex) {
-          System.err.println("ERROR: order cannot be instantiated: " + _ex.toString());
+          if (xmlDocument != null) {
+            processXmlDocument(xmlDocument);
+          }
+
+          for (final String supplierName : outgoingOrdersMap.keySet()) {
+            final Document outOrderXml = outgoingOrdersMap.get(supplierName);
+            final String outFileName = constructOutputFileName(supplierName);
+            //System.out.println("----- " + outFileName);
+            //System.out.println(transformNodeToString(outOrderXml));
+            try {
+              final OrderDescription orderDescription = new OrderDescription("processing",
+                  "fileName", outFileName,
+                  "xmlDocument", outOrderXml);
+              dispatcher.dispatch(orderDescription);
+            } catch (Exception _ex) {
+              System.err.println("ERROR: order cannot be instantiated: " + _ex.toString());
+            }
+          }
+        } finally {
+          if (xmlDocument != null) {
+            // TODO: delete only if requested
+            final boolean d = fileUtil.delete();
+          }
         }
+      } else {
+        // rename the file as it were and leave it be
+        //fileUtil.renameBack();
+        // TODO: renaming back in the input location causes infinite loop of the logic
       }
 
     } else {
@@ -68,7 +77,7 @@ public class OrderHandler implements Runnable {
     DocumentBuilder documentBuilder = null;
     try {
       documentBuilder = documentBuilderFactory.newDocumentBuilder();
-      // TODO:
+      // TODO: error handler
       documentBuilder.setErrorHandler(null);
     } catch (ParserConfigurationException _ex) {
       // nop
@@ -76,72 +85,45 @@ public class OrderHandler implements Runnable {
     return documentBuilder;
   }
 
-  private Document parseXmlDocument(File _file) {
-    DocumentBuilder documentBuilder = getDocumentBuilder();
-    if (documentBuilder != null) {
+  private boolean validateInputXmlDocument(final DocumentBuilder _documentBuilder, final File _file) {
+    FileInputStream validationFileInputStream = null;
+    try {
+      validationFileInputStream = new FileInputStream(_file);
+      final Schema schema = _documentBuilder.getSchema();
+      final Validator validator = schema.newValidator();
+      validator.validate(new StreamSource(validationFileInputStream));
+      return true;
+    } catch (SAXException _exSAX) {
+      System.err.println("ERROR: validating & parsing input XML document: " + _exSAX.toString());
+    } catch (IOException _ex) {
+      System.err.println("ERROR: validating & parsing input XML document: " + _ex.toString());
+    } finally {
       try {
-        // validation
-        final boolean b = documentBuilder.isValidating();
-        final Schema s = documentBuilder.getSchema();
-        final Validator v = s.newValidator();
-        v.validate(new StreamSource(_file));
+        validationFileInputStream.close();
+      } catch (NullPointerException | IOException _ex) {
+        // bury
+      }
+    }
+    return false;
+  }
 
-        // parsing
-        Document xmlDocument = documentBuilder.parse(_file);
-        xmlDocument.normalize();
-        return  xmlDocument;
-
-      } catch (SAXException | IOException _ex) {
-        System.err.println("ERROR: validating & parsing input XML document: " + _ex.toString());
-        // TODO: after an XML is not validated, apparently it is not possible to delete it until the application is closed
+  private Document parseXmlDocument(final DocumentBuilder _documentBuilder, final File _file) {
+    FileInputStream parsingFileInputStream = null;
+    try {
+      parsingFileInputStream = new FileInputStream(_file);
+      Document xmlDocument = _documentBuilder.parse(parsingFileInputStream);
+      xmlDocument.normalize();
+      return xmlDocument;
+    } catch (SAXException | IOException _exIO) {
+      System.err.println("ERROR: validating & parsing input XML document: " + _exIO.toString());
+    } finally {
+      try {
+        parsingFileInputStream.close();
+      } catch (NullPointerException | IOException _ex) {
+        // bury
       }
     }
     return null;
-  }
-
-  private File renameFileToEnsureAccess(final FileSystem _fs, final String _directoryAbsolutePath,
-                                        final File _currentFile, final String _fileName) {
-    final String uuid = UUID.randomUUID().toString();
-    final Path newFileFullPathAndName = _fs.getPath(_directoryAbsolutePath, uuid + _fileName);
-    final File newFile = new File(newFileFullPathAndName.toUri());
-    int tryCount = 20; // TODO: from settings
-    int tryDelayMilli = 100;
-    while(tryCount > 0) {
-      final boolean res = _currentFile.renameTo(newFile);
-      if (res) {
-        return newFile;
-      } else {
-        --tryCount;
-        try {
-          Thread.sleep(tryDelayMilli);
-        } catch (InterruptedException e) {
-          break;
-        }
-      }
-    }
-    return null;
-  }
-
-  private File readInputFile() {
-    final FileSystem fs = FileSystems.getDefault();
-
-    final Path directoryAsPath = (Path) orderDescription.item("directory");
-    final Path fileAsPath = (Path) orderDescription.item("file");
-
-    final String directoryAbsolutePath = directoryAsPath.toString();
-    final String fileName = fileAsPath.toString();
-    final Path fileFullPathAndFileName = fs.getPath(directoryAbsolutePath, fileName);
-    File f = new File(fileFullPathAndFileName.toUri());
-    if (f.exists()) {
-      // rename the file such that it's sure we have full access to it
-      // it might happen that, for large files, writing is not over yet and it will
-      // blow up a little later upon access anyway
-      // TODO: this is a workaround and a better solution is needed
-      return renameFileToEnsureAccess(fs, directoryAbsolutePath, f, fileName);
-
-    } else {
-      return null;
-    }
   }
 
   private String constructOutputFileName(String _supplierNode) {
