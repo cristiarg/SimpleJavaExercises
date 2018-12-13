@@ -126,7 +126,7 @@ public class XMLOrderProcessing implements LifeCycle, OrderDispatcher {
         // TODO: not interested in the result, for now
         // TODO: get the future instance, add it to a waiting queue, dispatch another thread to
         // monitor the queue
-        executor.submit(new OrderHandler(dispatcher, _orderDescription, documentBuilderFactory));
+        executor.submit(new OrderHandler(dispatcher, _orderDescription, settings.isCleanUpProcessedOrderFiles(), documentBuilderFactory));
       } else {
         // TODO: not the order description we've been waiting for
         System.err.println("ERROR: Processing: unexpected nature; found '" + nature + "'; expected 'receiver'; message will be discarded");

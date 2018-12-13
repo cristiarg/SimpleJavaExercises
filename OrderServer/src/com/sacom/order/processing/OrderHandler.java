@@ -16,14 +16,18 @@ import javax.xml.validation.Validator;
 
 public class OrderHandler implements Runnable {
   private OrderDispatcher dispatcher;
+  private boolean cleanUpProcessedOrderFiles;
 
   private OrderDescription orderDescription;
   private DocumentBuilderFactory documentBuilderFactory;
 
   private HashMap<String, Document> outgoingOrdersMap;
 
-  OrderHandler(OrderDispatcher _dispatcher, OrderDescription _orderDescription, DocumentBuilderFactory _documentBuilderFactory) {
+  OrderHandler(OrderDispatcher _dispatcher, OrderDescription _orderDescription,
+               boolean _cleanUpProcessedOrderFiles,
+               DocumentBuilderFactory _documentBuilderFactory) {
     dispatcher = _dispatcher;
+    cleanUpProcessedOrderFiles = _cleanUpProcessedOrderFiles;
     orderDescription = _orderDescription;
     documentBuilderFactory = _documentBuilderFactory;
 
@@ -33,7 +37,7 @@ public class OrderHandler implements Runnable {
   @Override
   public void run() {
     OrderFileUtil fileUtil = new OrderFileUtil(orderDescription);
-    if(fileUtil.copyToTemporary()) {
+    if (fileUtil.copyToTemporary()) {
       final DocumentBuilder documentBuilder = getDocumentBuilder();
       if (validateInputXmlDocument(documentBuilder, fileUtil.getTempFile())) {
         final Document xmlDocument = parseXmlDocument(documentBuilder, fileUtil.getTempFile());
@@ -59,7 +63,9 @@ public class OrderHandler implements Runnable {
         } finally {
           fileUtil.deleteTempFile();
           if (xmlDocument != null) {
-            fileUtil.deleteInitialFile();
+            if (cleanUpProcessedOrderFiles) {
+              fileUtil.deleteInitialFile();
+            }
           }
         }
       } else {
@@ -127,7 +133,7 @@ public class OrderHandler implements Runnable {
 
   private String constructOutputFileName(String _supplierNode) {
     StringBuilder sb = new StringBuilder(_supplierNode);
-    final String orderNumber = (String)orderDescription.item("orderNumber");
+    final String orderNumber = (String) orderDescription.item("orderNumber");
     if (orderNumber == null) {
       System.err.println("ERROR: 'orderNumber' expected in order description");
     }
