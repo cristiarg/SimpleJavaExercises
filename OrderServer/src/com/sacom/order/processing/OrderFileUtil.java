@@ -3,9 +3,8 @@ package com.sacom.order.processing;
 import com.sacom.order.common.OrderDescription;
 
 import java.io.File;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.UUID;
 
 class OrderFileUtil {
@@ -14,9 +13,11 @@ class OrderFileUtil {
   private Path directoryAsPath;
 
   private Path initialFileAsPath;
-  private File initialFile;
 
-  private File renamedFile;
+  private Path initialPath;
+
+  private Path tempPath;
+  private File tempFile;
 
   enum State {
     Initial,
@@ -33,34 +34,65 @@ class OrderFileUtil {
     state = State.Initial;
   }
 
-  private File getInitialFile() {
-    if (initialFile == null) {
-      final Path initialFileFullPathAsPath = fs.getPath(directoryAsPath.toString(),initialFileAsPath.toString());
-      initialFile = new File(initialFileFullPathAsPath.toUri());
+  private Path getInitialPath() {
+    if (initialPath == null) {
+      initialPath = fs.getPath(directoryAsPath.toString(),initialFileAsPath.toString());
     }
-    return initialFile;
+    return initialPath;
   }
 
-  File getRenamedFile() {
-    if (renamedFile == null) {
-      final String uuid = UUID.randomUUID().toString();
-      final Path renamedFileAsPath = fs.getPath(uuid + "_" + initialFileAsPath.toString());
-      final Path renamedFileFullPathAsPath = fs.getPath(directoryAsPath.toString(), renamedFileAsPath.toString());
-
-      renamedFile = new File(renamedFileFullPathAsPath.toUri());
+  void deleteInitialFile() {
+    if (initialPath != null) {
+      try {
+        Files.deleteIfExists(initialPath);
+      } catch(IOException _ex) {
+        _ex.printStackTrace();
+      } finally {
+        initialPath = null;
+      }
     }
-    return renamedFile;
   }
 
-  boolean renameToTemporary() {
+  private Path getTempPath() {
+    if (tempPath == null) {
+      final String tempDir = System.getProperty("java.io.tmpdir");
+      final String uuidFileName = UUID.randomUUID().toString() + ".xml";
+      tempPath = Paths.get(tempDir, uuidFileName).toAbsolutePath();
+    }
+    return tempPath;
+  }
+
+  File getTempFile() {
+    if(tempFile == null) {
+      tempFile = new File(getTempPath().toUri());
+    }
+    return tempFile;
+  }
+
+  void deleteTempFile() {
+    if (tempPath != null ) {
+      try {
+        Files.deleteIfExists(tempPath);
+      } catch (IOException _ex) {
+        _ex.printStackTrace();
+      } finally {
+        tempFile = null;
+        tempPath = null;
+      }
+    }
+  }
+
+  boolean copyToTemporary() {
     int tryCount = 20; // TODO: from settings
     int tryDelayMilli = 100;
     while(tryCount > 0) {
-      final boolean res = getInitialFile().renameTo(getRenamedFile());
-      if (res) {
+      final Path initialPath = getInitialPath();
+      final Path tempPath = getTempPath();
+      try {
+        Files.copy(initialPath, tempPath);
         state = State.Renamed;
         return true;
-      } else {
+      } catch (IOException _ex) {
         --tryCount;
         try {
           Thread.sleep(tryDelayMilli);
@@ -70,25 +102,5 @@ class OrderFileUtil {
       }
     }
     return false;
-  }
-
-  void renameBack() {
-    assert state == State.Renamed;
-    final boolean res = getRenamedFile().renameTo(getInitialFile());
-    if (res) {
-      state = State.Initial;
-    }
-  }
-
-  boolean delete() {
-    boolean res = true;
-    if (initialFile != null && initialFile.exists()) {
-      res = initialFile.delete();
-    }
-    if (renamedFile != null && renamedFile.exists()) {
-      final boolean resRenamed = renamedFile.delete();
-      res = res && resRenamed;
-    }
-    return res;
   }
 }

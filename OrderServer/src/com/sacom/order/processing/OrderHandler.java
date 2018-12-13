@@ -33,10 +33,10 @@ public class OrderHandler implements Runnable {
   @Override
   public void run() {
     OrderFileUtil fileUtil = new OrderFileUtil(orderDescription);
-    if(fileUtil.renameToTemporary()) {
+    if(fileUtil.copyToTemporary()) {
       final DocumentBuilder documentBuilder = getDocumentBuilder();
-      if (validateInputXmlDocument(documentBuilder, fileUtil.getRenamedFile())) {
-        final Document xmlDocument = parseXmlDocument(documentBuilder, fileUtil.getRenamedFile());
+      if (validateInputXmlDocument(documentBuilder, fileUtil.getTempFile())) {
+        final Document xmlDocument = parseXmlDocument(documentBuilder, fileUtil.getTempFile());
         try {
           if (xmlDocument != null) {
             processXmlDocument(xmlDocument);
@@ -57,15 +57,14 @@ public class OrderHandler implements Runnable {
             }
           }
         } finally {
+          fileUtil.deleteTempFile();
           if (xmlDocument != null) {
-            // TODO: delete only if requested
-            final boolean d = fileUtil.delete();
+            fileUtil.deleteInitialFile();
           }
         }
       } else {
-        // rename the file as it were and leave it be
-        //fileUtil.renameBack();
-        // TODO: renaming back in the input location causes infinite loop of the logic
+        // just delete temp file; leave initial
+        fileUtil.deleteTempFile();
       }
 
     } else {
