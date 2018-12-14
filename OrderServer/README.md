@@ -32,6 +32,7 @@ Communication between entities happens by means of messages. For the moment ther
 - **XML Handling**: polishing/error handling
 - **Structure**: replace the pipeline-like connections by a sort of 'message queue' entity + a publisher/subscriber mechanism for the entities performing parts of the processing
 - **Receiver**: implement a logic to process files alredy found in the incoming location (tricky)
+-- Hint: another, one-off, receiver implementation hooked into the pipeline; it should not interfere with the monitoring pipeline: it should finish processing existing orders before monitoring starts
 - **Receiver**: more asynchronicity could be implemented - i.e.: decouple polling and checking/dispatching
 - **Processing**: implement cleanup of incoming orders if so specified
 
