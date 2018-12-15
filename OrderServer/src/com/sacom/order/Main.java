@@ -11,24 +11,95 @@ import com.sacom.order.receiver.filesystem.Receiver;
 import com.sacom.order.common.LifeCycle;
 import com.sacom.order.receiver.filesystem.ReceiverSettings;
 
+import org.apache.commons.cli.*;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
+  private static Options constructOptions() {
+    Options options = new Options();
+
+    // input
+    final Option input = Option.builder("i").longOpt("input").hasArg().argName("dir").desc("input directory").required().build();
+    //final Option inputWait = Option.builder("iw").longOpt("input-wait").argName("millis").desc("wait interval in millliseconds").build();
+    options.addOption(input);
+    //options.addOption(inputWait);
+
+    // procesing
+    final Option processingClean = Option.builder("pc").hasArg(false).desc("clean up processed order files").longOpt("processing-clean").build();
+    options.addOption(processingClean);
+
+    // output
+    final Option output = Option.builder("o").longOpt("output").hasArg().argName("dir").desc("output directory").required().build();
+    options.addOption(output);
+
+    // help
+    final Option help = Option.builder("h").longOpt("help").desc("print this message").build();
+    options.addOption(help);
+
+    return options;
+  }
+
+  private static void displayHelp(final Options _options) {
+    HelpFormatter formatter = new HelpFormatter();
+    formatter.printHelp("order", _options);
+  }
+
+  private static CommandLine parseCommandLine(final Options _options, String[] _args) {
+    final CommandLineParser parser = new DefaultParser();
+    try {
+      final CommandLine commandLine = parser.parse(_options, _args);
+
+      if (commandLine.hasOption("h")) {
+        displayHelp(_options);
+        System.exit(0);
+      }
+
+      return commandLine;
+    } catch (ParseException e) {
+      System.err.println("Unable to parse options: " + e.getMessage());
+      displayHelp(_options);
+      System.exit(-1);
+    }
+    return null;
+  }
+
+  private static ReceiverSettings constructReceiverSettings(final CommandLine _commandLine) {
+    try {
+      final String inputDirectory = _commandLine.getOptionValue("i");
+      final ReceiverSettings receiverSettings = new ReceiverSettings(inputDirectory);
+      return receiverSettings;
+    } catch (ReceiverException _ex) {
+      System.err.println("ERROR: invalid receiver settings: " + _ex.toString());
+    }
+    return null;
+  }
+
+  private static ProcessingSettings constructProcessingSettings(final CommandLine _commandLine) {
+    final boolean processingClean = _commandLine.hasOption("processing-clean");
+    final ProcessingSettings processingSettings = new ProcessingSettings("orders.xsd", processingClean);
+    return processingSettings;
+  }
+
   public static void main(String[] args) {
-    System.out.println("working dir = " + System.getProperty("user.dir"));
-    //
+    final Options options = constructOptions();
+    final CommandLine commandLine = parseCommandLine(options, args);
+
+    //System.out.println("working dir = " + System.getProperty("user.dir"));
+
     // construct settings
     //
-    ReceiverSettings receiverSettings = null;
-    try {
-      receiverSettings = new ReceiverSettings(
-          "C:\\_i", 100, TimeUnit.MILLISECONDS);
-    } catch (ReceiverException _ex) {
-      System.err.println("ERROR: cannot instantiate file system receiver: " + _ex.toString());
-    }
+//    ReceiverSettings receiverSettings = null;
+//    try {
+//      receiverSettings = new ReceiverSettings( "C:\\_i");
+//    } catch (ReceiverException _ex) {
+//      System.err.println("ERROR: invalid receiver settings: " + _ex.toString());
+//    }
+    final ReceiverSettings receiverSettings = constructReceiverSettings(commandLine);
 
-    final ProcessingSettings processingSettings = new ProcessingSettings("orders.xsd", true);
+//    final ProcessingSettings processingSettings = new ProcessingSettings("orders.xsd", true);
+    final ProcessingSettings processingSettings = constructProcessingSettings(commandLine);
 
     DispatcherSettings dispatcherSettings = null;
     try {
@@ -48,7 +119,7 @@ public class Main {
     }
 
     XMLOrderProcessing orderProcessing = null;
-    if(orderDispatcher != null) {
+    if (orderDispatcher != null) {
       try {
         orderProcessing = new XMLOrderProcessing(processingSettings, orderDispatcher);
         orderProcessing.start();
@@ -85,17 +156,17 @@ public class Main {
     if (orderReceiver != null) {
       try {
         orderReceiver.stop();
-      } catch(LifeCycleException _ex) {
+      } catch (LifeCycleException _ex) {
         System.err.println("ERROR: failed to stop the receiver: " + _ex.toString());
       } finally {
         orderReceiver = null;
       }
     }
 
-    if(orderProcessing != null) {
+    if (orderProcessing != null) {
       try {
         orderProcessing.stop();
-      } catch(LifeCycleException _ex) {
+      } catch (LifeCycleException _ex) {
         System.err.println("ERROR: failed to stop the processing: " + _ex.toString());
       } finally {
         orderProcessing = null;
