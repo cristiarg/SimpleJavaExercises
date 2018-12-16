@@ -27,7 +27,6 @@ Likewise, this implementation ca be easily replaced by another that which uses o
 Communication between entities happens by means of messages. For the moment there is only one message type -  `com\sacom\order\common\OrderDescription` - a key/value map augmented by a `nature` string value whose semantics is defined as an internal application protocol.
 
 ## TODO's
-- **Main**: read hardcoded parameters from the command line
 - **Everywhere**: appropriate error reporting from the asynchronously executing entities
 - **XML Handling**: polishing/error handling
 - **Structure**: replace the pipeline-like connections by a sort of 'message queue' entity + a publisher/subscriber mechanism for the entities performing parts of the processing

@@ -1,7 +1,7 @@
 package com.sacom.order.processing;
 
-import com.sacom.order.common.OrderDescription;
-import com.sacom.order.common.OrderDispatcher;
+import com.sacom.order.common.MessageDescription;
+import com.sacom.order.common.MessageDispatcher;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -15,20 +15,20 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 public class OrderHandler implements Runnable {
-  private OrderDispatcher dispatcher;
+  private MessageDispatcher dispatcher;
   private boolean cleanUpProcessedOrderFiles;
 
-  private OrderDescription orderDescription;
+  private MessageDescription messageDescription;
   private DocumentBuilderFactory documentBuilderFactory;
 
   private HashMap<String, Document> outgoingOrdersMap;
 
-  OrderHandler(OrderDispatcher _dispatcher, OrderDescription _orderDescription,
+  OrderHandler(MessageDispatcher _dispatcher, MessageDescription _messageDescription,
                boolean _cleanUpProcessedOrderFiles,
                DocumentBuilderFactory _documentBuilderFactory) {
     dispatcher = _dispatcher;
     cleanUpProcessedOrderFiles = _cleanUpProcessedOrderFiles;
-    orderDescription = _orderDescription;
+    messageDescription = _messageDescription;
     documentBuilderFactory = _documentBuilderFactory;
 
     outgoingOrdersMap = new HashMap<>();
@@ -36,7 +36,7 @@ public class OrderHandler implements Runnable {
 
   @Override
   public void run() {
-    OrderFileUtil fileUtil = new OrderFileUtil(orderDescription);
+    OrderFileUtil fileUtil = new OrderFileUtil(messageDescription);
     if (fileUtil.copyToTemporary()) {
       final DocumentBuilder documentBuilder = getDocumentBuilder();
       if (validateInputXmlDocument(documentBuilder, fileUtil.getTempFile())) {
@@ -52,10 +52,10 @@ public class OrderHandler implements Runnable {
             //System.out.println("----- " + outFileName);
             //System.out.println(transformNodeToString(outOrderXml));
             try {
-              final OrderDescription orderDescription = new OrderDescription("processing",
+              final MessageDescription messageDescription = new MessageDescription("processing",
                   "fileName", outFileName,
                   "xmlDocument", outOrderXml);
-              dispatcher.dispatch(orderDescription);
+              dispatcher.dispatch("processing", messageDescription);
             } catch (Exception _ex) {
               System.err.println("ERROR: order cannot be instantiated: " + _ex.toString());
             }
@@ -133,7 +133,7 @@ public class OrderHandler implements Runnable {
 
   private String constructOutputFileName(String _supplierNode) {
     StringBuilder sb = new StringBuilder(_supplierNode);
-    final String orderNumber = (String) orderDescription.item("orderNumber");
+    final String orderNumber = (String) messageDescription.item("orderNumber");
     if (orderNumber == null) {
       System.err.println("ERROR: 'orderNumber' expected in order description");
     }

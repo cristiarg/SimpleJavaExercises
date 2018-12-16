@@ -1,6 +1,6 @@
 package com.sacom.order.dispatcher.filesystem;
 
-import com.sacom.order.common.OrderDescription;
+import com.sacom.order.common.MessageDescription;
 import org.w3c.dom.Document;
 
 import javax.xml.transform.*;
@@ -11,17 +11,17 @@ import java.nio.file.*;
 
 class OrderHandler implements Runnable {
   private DispatcherSettings settings;
-  private OrderDescription orderDescription;
+  private MessageDescription messageDescription;
 
-  OrderHandler(DispatcherSettings _settings, OrderDescription _orderDescription) {
+  OrderHandler(DispatcherSettings _settings, MessageDescription _messageDescription) {
     settings = _settings;
-    orderDescription = _orderDescription;
+    messageDescription = _messageDescription;
   }
 
   @Override
   public void run() {
-    final Object fileNameAsObject = orderDescription.item("fileName");
-    final Object xmlDocumentAsObject = orderDescription.item("xmlDocument");
+    final Object fileNameAsObject = messageDescription.item("fileName");
+    final Object xmlDocumentAsObject = messageDescription.item("xmlDocument");
     final boolean fileOk = fileNameAsObject instanceof String;
     final boolean xmlDocumentOk = xmlDocumentAsObject instanceof Document;
     if(fileOk && xmlDocumentOk) {
@@ -67,8 +67,8 @@ class OrderHandler implements Runnable {
   private void debugHandling() {
 //    FileSystem fs = FileSystems.getDefault();
 //
-//    final Path directoryAsPath = (Path)orderDescription.item("directory");
-//    final Path fileAsPath = (Path)orderDescription.item("file");
+//    final Path directoryAsPath = (Path)messageDescription.item("directory");
+//    final Path fileAsPath = (Path)messageDescription.item("file");
 //    final String oldDirectoryAbsolutePath = directoryAsPath.toString();
 //    final String fileName = fileAsPath.toString();
 //

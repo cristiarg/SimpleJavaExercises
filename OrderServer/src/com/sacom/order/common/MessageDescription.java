@@ -6,8 +6,9 @@ import java.util.Map;
 /**
  * General container for messages.
  */
-public class OrderDescription {
+public class MessageDescription {
   private String nature;
+    // TODO: decouple nature from MessageDescription; maybe the same message pertains to more than one nature/interest
   private Map<String, Object> nameValueMap = new HashMap<>();
 
   /**
@@ -16,7 +17,7 @@ public class OrderDescription {
    * @param _nameValuePairs - names (as String) and values supplied as elements in a map
    * @throws Exception - a message describing what is not right is the constructor's arguments
    */
-  public OrderDescription(final String _nature, final Object... _nameValuePairs) throws Exception {
+  public MessageDescription(final String _nature, final Object... _nameValuePairs) throws Exception {
     nature = _nature;
 
     final int count = _nameValuePairs.length;

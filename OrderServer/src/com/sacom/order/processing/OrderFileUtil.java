@@ -1,6 +1,6 @@
 package com.sacom.order.processing;
 
-import com.sacom.order.common.OrderDescription;
+import com.sacom.order.common.MessageDescription;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,11 +25,11 @@ class OrderFileUtil {
   }
   private State state;
 
-  OrderFileUtil(final OrderDescription _orderDescription) {
-    directoryAsPath = (Path) _orderDescription.item("directory");
+  OrderFileUtil(final MessageDescription _messageDescription) {
+    directoryAsPath = (Path) _messageDescription.item("directory");
     directoryAsPath = directoryAsPath.toAbsolutePath();
 
-    initialFileAsPath = (Path) _orderDescription.item("file");
+    initialFileAsPath = (Path) _messageDescription.item("file");
 
     state = State.Initial;
   }

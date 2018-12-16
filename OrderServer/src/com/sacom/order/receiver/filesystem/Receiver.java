@@ -1,23 +1,20 @@
 package com.sacom.order.receiver.filesystem;
 
-import com.sacom.order.common.LifeCycleException;
-import com.sacom.order.common.LifeCycle;
-import com.sacom.order.common.OrderDispatcher;
+import com.sacom.order.common.*;
 import com.sacom.order.receiver.ReceiverException;
 
 /**
  * Monitors a directory on the filesystem, according to settings, for new 'incoming' order files.
  */
-public class Receiver implements LifeCycle {
+public class Receiver implements LifeCycle, MessageBrokerClient {
   private ReceiverSettings settings;
-  private OrderDispatcher dispatcher;
+  private MessageDispatcher messageDispatcher;
 
   private NewFilesWatcher newFilesWatcher;
   private Thread watcherThread;
 
-  public Receiver(ReceiverSettings _settings, OrderDispatcher _dispatcher) {
+  public Receiver(ReceiverSettings _settings) {
     settings = _settings;
-    dispatcher = _dispatcher;
   }
 
   @Override
@@ -26,7 +23,7 @@ public class Receiver implements LifeCycle {
       logStatusBeforeStart();
 
       try {
-        newFilesWatcher = new NewFilesWatcher(settings, dispatcher);
+        newFilesWatcher = new NewFilesWatcher(settings, messageDispatcher);
         watcherThread = new Thread(newFilesWatcher);
         watcherThread.start();
 
@@ -86,5 +83,12 @@ public class Receiver implements LifeCycle {
   private void logStatusAfterStop() {
     System.out.println("INFO: File System Receiver:");
     System.out.println("      stopped");
+  }
+
+  @Override
+  public void register(MessageBrokerServer _messageBrokerServer) {
+    // keep a reference to the broker to be able to dispatch messages to it (one way or another)
+    messageDispatcher = _messageBrokerServer;
+    // not registering ourselves for any messages
   }
 }

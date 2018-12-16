@@ -1,9 +1,6 @@
 package com.sacom.order.processing;
 
-import com.sacom.order.common.LifeCycle;
-import com.sacom.order.common.LifeCycleException;
-import com.sacom.order.common.OrderDescription;
-import com.sacom.order.common.OrderDispatcher;
+import com.sacom.order.common.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -15,18 +12,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class XMLOrderProcessing implements LifeCycle, OrderDispatcher {
+public class XMLOrderProcessing implements LifeCycle, MessageDispatcher, MessageBrokerClient {
   private ProcessingSettings settings;
 
-  private OrderDispatcher dispatcher;
+  private MessageDispatcher messageDispatcher;
 
   private ExecutorService executor;
 
   private DocumentBuilderFactory documentBuilderFactory;
 
-  public XMLOrderProcessing(final ProcessingSettings _processingSettings, OrderDispatcher _dispatcher) {
+  public XMLOrderProcessing(final ProcessingSettings _processingSettings) {
     settings = _processingSettings;
-    dispatcher = _dispatcher;
   }
 
   @Override
@@ -119,18 +115,26 @@ public class XMLOrderProcessing implements LifeCycle, OrderDispatcher {
   }
 
   @Override
-  public synchronized void dispatch(OrderDescription _orderDescription) {
+  public synchronized void dispatch(final String _interest, final MessageDescription _messageDescription) {
     if (executor != null) {
-      final String nature = _orderDescription.getNature();
+      final String nature = _messageDescription.getNature();
       if (nature.equals("receiver")) {
         // TODO: not interested in the result, for now
         // TODO: get the future instance, add it to a waiting queue, dispatch another thread to
         // monitor the queue
-        executor.submit(new OrderHandler(dispatcher, _orderDescription, settings.isCleanUpProcessedOrderFiles(), documentBuilderFactory));
+        executor.submit(new OrderHandler(messageDispatcher, _messageDescription, settings.isCleanUpProcessedOrderFiles(), documentBuilderFactory));
       } else {
         // TODO: not the order description we've been waiting for
         System.err.println("ERROR: Processing: unexpected nature; found '" + nature + "'; expected 'receiver'; message will be discarded");
       }
     }
+  }
+
+  @Override
+  public void register(MessageBrokerServer _messageBrokerServer) {
+    // keep a reference to the broker to be able to dispatch messages to it (one way or another)
+    messageDispatcher = _messageBrokerServer;
+    // registering ourselves for any messages
+    _messageBrokerServer.subscribe("receiver", this);
   }
 }

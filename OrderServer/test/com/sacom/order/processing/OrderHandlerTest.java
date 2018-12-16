@@ -1,14 +1,12 @@
 package com.sacom.order.processing;
 
-import com.sacom.order.common.OrderDescription;
+import com.sacom.order.common.MessageDescription;
 import org.junit.Test;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static org.junit.Assert.*;
 
 public class OrderHandlerTest {
 
@@ -21,9 +19,9 @@ public class OrderHandlerTest {
     Path dirPath = Paths.get("C:\\_test");
     Path fileName = Paths.get("order01.xml");
     try {
-      final OrderDescription orderDescription = new OrderDescription("receiver",
+      final MessageDescription messageDescription = new MessageDescription("receiver",
           "directory", dirPath, "file", fileName);
-      OrderHandler oh = new OrderHandler(null, orderDescription, true, documentBuilderFactory);
+      OrderHandler oh = new OrderHandler(null, messageDescription, true, documentBuilderFactory);
       oh.run();
     } catch (Exception _ex) {
       // nop

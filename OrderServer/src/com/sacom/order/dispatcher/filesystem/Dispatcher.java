@@ -2,14 +2,14 @@ package com.sacom.order.dispatcher.filesystem;
 
 import com.sacom.order.common.LifeCycle;
 import com.sacom.order.common.LifeCycleException;
-import com.sacom.order.common.OrderDescription;
-import com.sacom.order.common.OrderDispatcher;
+import com.sacom.order.common.MessageDescription;
+import com.sacom.order.common.MessageDispatcher;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class Dispatcher implements LifeCycle, OrderDispatcher {
+public class Dispatcher implements LifeCycle, MessageDispatcher {
   private DispatcherSettings settings;
 
   private ExecutorService executor; // TODO: extract some utility of this for use in here and in receiver
@@ -72,14 +72,14 @@ public class Dispatcher implements LifeCycle, OrderDispatcher {
 
 
   @Override
-  public synchronized void dispatch(OrderDescription _orderDescription) {
+  public synchronized void dispatch(final String _interest, final MessageDescription _messageDescription) {
     if (executor != null) {
-      final String nature = _orderDescription.getNature();
+      final String nature = _messageDescription.getNature();
       if (nature.equals("processing")) {
         // TODO: not interested in the result, for now
         // TODO: get the future instance, add it to a waiting queue, dispatch another thread to
         // monitor the queue
-        executor.submit(new OrderHandler(settings, _orderDescription));
+        executor.submit(new OrderHandler(settings, _messageDescription));
       } else {
         // TODO: not the order description we've been waiting for
         System.err.println("ERROR: Dispatcher: unexpected nature; found '" + nature + "'; expected 'processing'; message will be discarded");

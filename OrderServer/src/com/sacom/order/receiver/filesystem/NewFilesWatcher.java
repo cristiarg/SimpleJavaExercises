@@ -1,7 +1,8 @@
 package com.sacom.order.receiver.filesystem;
 
-import com.sacom.order.common.OrderDescription;
-import com.sacom.order.common.OrderDispatcher;
+import com.sacom.order.common.MessageBrokerServer;
+import com.sacom.order.common.MessageDescription;
+import com.sacom.order.common.MessageDispatcher;
 import com.sacom.order.receiver.ReceiverException;
 
 import java.io.IOException;
@@ -15,16 +16,16 @@ import java.util.regex.Pattern;
  */
 class NewFilesWatcher implements Runnable {
   private ReceiverSettings settings;
-  private OrderDispatcher dispatcher;
+  private MessageDispatcher messageDispatcher;
 
   private WatchService watchService;
   private Path directory;
 
   private boolean overflowDuringMonitoring = false;
 
-  NewFilesWatcher(ReceiverSettings _settings, OrderDispatcher _dispatcher) throws ReceiverException {
+  NewFilesWatcher(ReceiverSettings _settings, MessageDispatcher _messageDispatcher) throws ReceiverException {
     settings = _settings;
-    dispatcher = _dispatcher;
+    messageDispatcher = _messageDispatcher;
 
     constructAndStartUpWatcher();
     // called here just because we cannot throw from the run method
@@ -47,13 +48,13 @@ class NewFilesWatcher implements Runnable {
                 String orderNumber = extractOrderNumber(fileNamePath.toString());
                 if(orderNumber.length() > 0) {
                   try {
-                    OrderDescription orderDescription = new OrderDescription("receiver",
+                    MessageDescription messageDescription = new MessageDescription("receiver",
                         "directory", directory,
                         "file", fileNamePath,
                         "orderNumber", orderNumber);
                     //System.out.println("Dir: " + directory.toAbsolutePath());
                     //System.out.println("File: " + fileNamePath.toAbsolutePath());
-                    dispatcher.dispatch(orderDescription);
+                    messageDispatcher.dispatch("receiver", messageDescription);
 
                   } catch (Exception _ex) {
                     // TODO:
