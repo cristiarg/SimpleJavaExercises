@@ -14,7 +14,6 @@ import com.sacom.order.receiver.filesystem.ReceiverSettings;
 import org.apache.commons.cli.*;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class Main {
   private static Options constructOptions() {
@@ -22,9 +21,7 @@ public class Main {
 
     // input
     final Option input = Option.builder("i").longOpt("input").hasArg().argName("dir").desc("input directory").required().build();
-    //final Option inputWait = Option.builder("iw").longOpt("input-wait").argName("millis").desc("wait interval in millliseconds").build();
     options.addOption(input);
-    //options.addOption(inputWait);
 
     // procesing
     final Option processingClean = Option.builder("pc").hasArg(false).desc("clean up processed order files").longOpt("processing-clean").build();
@@ -82,6 +79,17 @@ public class Main {
     return processingSettings;
   }
 
+  private static DispatcherSettings constructDispatherSettings(final CommandLine _commandLine) {
+    try {
+      final String outputDirectory = _commandLine.getOptionValue("output");
+      final DispatcherSettings dispatcherSettings = new DispatcherSettings(outputDirectory);
+      return dispatcherSettings;
+    } catch (DispatcherException e) {
+      System.err.println("ERROR: invalid dispatcher settings: " + e.toString());
+    }
+    return null;
+  }
+
   public static void main(String[] args) {
     final Options options = constructOptions();
     final CommandLine commandLine = parseCommandLine(options, args);
@@ -90,24 +98,9 @@ public class Main {
 
     // construct settings
     //
-//    ReceiverSettings receiverSettings = null;
-//    try {
-//      receiverSettings = new ReceiverSettings( "C:\\_i");
-//    } catch (ReceiverException _ex) {
-//      System.err.println("ERROR: invalid receiver settings: " + _ex.toString());
-//    }
     final ReceiverSettings receiverSettings = constructReceiverSettings(commandLine);
-
-//    final ProcessingSettings processingSettings = new ProcessingSettings("orders.xsd", true);
     final ProcessingSettings processingSettings = constructProcessingSettings(commandLine);
-
-    DispatcherSettings dispatcherSettings = null;
-    try {
-      dispatcherSettings = new DispatcherSettings("C:\\_o", 10);
-    } catch (DispatcherException _ex) {
-      System.err.println("ERROR: cannot instantiate file system dispatcher settings: " + _ex.toString());
-      dispatcherSettings = null;
-    }
+    final DispatcherSettings dispatcherSettings = constructDispatherSettings(commandLine);
 
     //
     // construct the pipeline backwards
