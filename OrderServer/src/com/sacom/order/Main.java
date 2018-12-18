@@ -93,81 +93,6 @@ public class Main {
     return null;
   }
 
-  //  private static void f(final CommandLine _commandLine) {
-  //    //System.out.println("working dir = " + System.getProperty("user.dir"));
-  //
-  //    // construct settings
-  //    //
-  //    final ReceiverSettings receiverSettings = constructReceiverSettings(_commandLine);
-  //    final ProcessingSettings processingSettings = constructProcessingSettings(_commandLine);
-  //    final DispatcherSettings dispatcherSettings = constructDispatherSettings(_commandLine);
-  //
-  //    //
-  //    // construct the pipeline backwards
-  //    //
-  //    Dispatcher orderDispatcher = new Dispatcher(dispatcherSettings);
-  //    orderDispatcher.start();
-  //
-  //    XMLOrderProcessing orderProcessing = null;
-  //    try {
-  //      orderProcessing = new XMLOrderProcessing(processingSettings, orderDispatcher);
-  //      orderProcessing.start();
-  //    } catch (LifeCycleException _ex) {
-  //      System.err.println("ERROR: cannot instantiate processing: " + _ex.toString());
-  //      System.exit(-1);
-  //    }
-  //
-  //    LifeCycle orderReceiver = null;
-  //    try {
-  //      orderReceiver = new Receiver(receiverSettings, orderProcessing);
-  //      orderReceiver.start();
-  //    } catch (LifeCycleException _ex) {
-  //      System.err.println("ERROR: cannot start order receiver: " + _ex.toString());
-  //      System.exit(-1);
-  //    }
-  //
-  //    // TODO: rudimentary wait for execution
-  //    try {
-  //      System.out.println("Monitoring/Processing/Dispatching loop running. Hit 'Return' to stop..");
-  //      System.in.read();
-  //    } catch (IOException _ex) {
-  //      // nop
-  //    }
-  //
-  //    //
-  //    // tear down the pipeline forwards, starting from the input
-  //    //
-  //    if (orderReceiver != null) {
-  //      try {
-  //        orderReceiver.stop();
-  //      } catch (LifeCycleException _ex) {
-  //        System.err.println("ERROR: failed to stop the receiver: " + _ex.toString());
-  //      } finally {
-  //        orderReceiver = null;
-  //      }
-  //    }
-  //
-  //    if (orderProcessing != null) {
-  //      try {
-  //        orderProcessing.stop();
-  //      } catch (LifeCycleException _ex) {
-  //        System.err.println("ERROR: failed to stop the processing: " + _ex.toString());
-  //      } finally {
-  //        orderProcessing = null;
-  //      }
-  //    }
-  //
-  //    if (orderDispatcher != null) {
-  //      try {
-  //        orderDispatcher.stop();
-  //      } catch (LifeCycleException _ex) {
-  //        System.err.println("ERROR: failed to stop the dispatcher: " + _ex.toString());
-  //      } finally {
-  //        orderDispatcher = null;
-  //      }
-  //    }
-  //  }
-
   public static void main(String[] args) {
     final Options options = constructOptions();
     final CommandLine commandLine = parseCommandLine(options, args);
@@ -221,6 +146,8 @@ public class Main {
       // nop
     }
 
+    // stop entities (forwards)
+    //
     orderReceiver.stop();
 
     try {

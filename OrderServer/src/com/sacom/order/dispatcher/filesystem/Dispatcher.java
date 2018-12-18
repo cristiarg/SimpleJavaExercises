@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class Dispatcher implements LifeCycle, MessageDispatcher, MessageBrokerClient {
+public class Dispatcher implements LifeCycle, MessageBrokerClient {
   private DispatcherSettings settings;
 
   private ExecutorService executor;

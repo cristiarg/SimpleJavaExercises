@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MessageBroker implements MessageBrokerServer {
   /**
@@ -15,6 +17,26 @@ public class MessageBroker implements MessageBrokerServer {
    * one dispatcher instance can subscribe to more than one interest
    */
   private Map<String, List<MessageDispatcher>> interestMap = new HashMap<>();
+
+  private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+  private class Dispatcher implements Runnable {
+    private String interest;
+    private MessageDescription messageDescription;
+    private MessageDispatcher messageDispatcher;
+
+    Dispatcher(final String _interest, final MessageDescription _messageDescription,
+               final MessageDispatcher _messageDispatcher) {
+      interest = _interest;
+      messageDescription = _messageDescription;
+      messageDispatcher = _messageDispatcher;
+    }
+
+    @Override
+    public void run() {
+      messageDispatcher.dispatch(interest, messageDescription);
+    }
+  }
 
   @Override
   public synchronized boolean subscribe(final String _interest, final MessageDispatcher _messageDispatcher) {
@@ -31,7 +53,8 @@ public class MessageBroker implements MessageBrokerServer {
     final List<MessageDispatcher> list = getList(_interest);
     if (list != null) {
       for(final MessageDispatcher messageDispatcher : list) {
-        messageDispatcher.dispatch(_interest, _messageDescription);
+        //messageDispatcher.dispatch(_interest, _messageDescription);
+        executor.submit(new Dispatcher(_interest, _messageDescription, messageDispatcher));
       }
     }
   }

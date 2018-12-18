@@ -91,4 +91,9 @@ public class Receiver implements LifeCycle, MessageBrokerClient {
     messageDispatcher = _messageBrokerServer;
     // not registering ourselves for any messages
   }
+
+  @Override
+  public void dispatch(String _interest, MessageDescription _messageDescription) {
+    assert "we subscribed to nothinf".length() == 0;
+  }
 }

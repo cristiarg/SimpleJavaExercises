@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class XMLOrderProcessing implements LifeCycle, MessageDispatcher, MessageBrokerClient {
+public class XMLOrderProcessing implements LifeCycle, MessageBrokerClient {
   private ProcessingSettings settings;
 
   private MessageDispatcher messageDispatcher;
