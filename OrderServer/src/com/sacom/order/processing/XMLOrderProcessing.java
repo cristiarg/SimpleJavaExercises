@@ -134,7 +134,7 @@ public class XMLOrderProcessing implements LifeCycle, MessageDispatcher, Message
   public void register(MessageBrokerServer _messageBrokerServer) {
     // keep a reference to the broker to be able to dispatch messages to it (one way or another)
     messageDispatcher = _messageBrokerServer;
-    // registering ourselves for any messages
+    // registering ourselves
     _messageBrokerServer.subscribe("receiver", this);
   }
 }

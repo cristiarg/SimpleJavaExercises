@@ -190,13 +190,12 @@ public class Main {
     final XMLOrderProcessing orderProcessing = new XMLOrderProcessing(processingSettings);
     orderProcessing.register(messageBroker);
 
-    try {
-      orderReceiver.start();
-      // TODO: uniform start/stop
-    } catch (LifeCycleException _ex) {
-      System.err.println("ERROR: cannot start order receiver: " + _ex.toString());
-      System.exit(-1);
-    }
+    final Dispatcher orderDispatcher = new Dispatcher(dispatcherSettings);
+    orderDispatcher.register(messageBroker);
+
+    // start entities (backwards)
+    //
+    orderDispatcher.start();
 
     try {
       orderProcessing.start();
@@ -205,6 +204,16 @@ public class Main {
       System.exit(-1);
     }
 
+    try {
+      orderReceiver.start();
+      // TODO: uniform start/stop
+    } catch (LifeCycleException _ex) {
+      System.err.println("ERROR: cannot start order receiver: " + _ex.toString());
+      System.exit(-1);
+    }
+
+    // loop
+    //
     try {
       System.out.println("Monitoring/Processing/Dispatching loop running. Hit 'Return' to stop..");
       System.in.read();
@@ -218,6 +227,12 @@ public class Main {
       orderProcessing.stop();
     } catch (LifeCycleException _ex) {
       System.err.println("ERROR: failed to stop the processing: " + _ex.toString());
+    }
+
+    try {
+      orderDispatcher.stop();
+    } catch (LifeCycleException e) {
+      e.printStackTrace();
     }
 
     System.exit(0);

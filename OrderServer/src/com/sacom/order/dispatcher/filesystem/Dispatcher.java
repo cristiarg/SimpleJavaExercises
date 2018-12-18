@@ -1,18 +1,15 @@
 package com.sacom.order.dispatcher.filesystem;
 
-import com.sacom.order.common.LifeCycle;
-import com.sacom.order.common.LifeCycleException;
-import com.sacom.order.common.MessageDescription;
-import com.sacom.order.common.MessageDispatcher;
+import com.sacom.order.common.*;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class Dispatcher implements LifeCycle, MessageDispatcher {
+public class Dispatcher implements LifeCycle, MessageDispatcher, MessageBrokerClient {
   private DispatcherSettings settings;
 
-  private ExecutorService executor; // TODO: extract some utility of this for use in here and in receiver
+  private ExecutorService executor;
 
   public Dispatcher(DispatcherSettings _settings) {
     settings = _settings;
@@ -85,5 +82,11 @@ public class Dispatcher implements LifeCycle, MessageDispatcher {
         System.err.println("ERROR: Dispatcher: unexpected nature; found '" + nature + "'; expected 'processing'; message will be discarded");
       }
     }
+  }
+
+  @Override
+  public void register(MessageBrokerServer _messageBrokerServer) {
+    // registering ourselves
+    _messageBrokerServer.subscribe("processing", this);
   }
 }
